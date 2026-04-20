@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion — WMS-S30{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow" style="width: 400px;">
+        <div class="card-body p-4">
+            <h4 class="card-title text-center mb-4">WMS-S30</h4>
+
+            {% if error %}
+                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_login') }}">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Identifiant (email)</label>
+                    <input type="email" id="email" name="email" class="form-control"
+                           value="{{ last_username }}" required autofocus autocomplete="email">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" id="password" name="password" class="form-control"
+                           required autocomplete="current-password">
+                </div>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

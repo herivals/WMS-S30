@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activer le 2FA — WMS-S30{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">Configurer Google Authenticator</h4>
+                    <p>Scannez ce QR code avec votre application <strong>Google Authenticator</strong> :</p>
+
+                    <div class="text-center my-4">
+                        <img src="https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl={{ qr_code_url|url_encode }}"
+                             alt="QR Code 2FA" class="img-fluid border p-2 rounded">
+                    </div>
+
+                    <p class="text-muted small">Ou entrez manuellement cette clé dans l'application :</p>
+                    <code class="d-block p-2 bg-light rounded text-center mb-4">{{ secret }}</code>
+
+                    <p>Une fois configuré, reconnectez-vous pour activer la vérification 2FA.</p>
+                    <a href="{{ path('app_dashboard') }}" class="btn btn-primary w-100">Terminer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

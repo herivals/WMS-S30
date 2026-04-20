@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérification 2FA — WMS-S30{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow" style="width: 400px;">
+        <div class="card-body p-4">
+            <h4 class="card-title text-center mb-2">Authentification à deux facteurs</h4>
+            <p class="text-muted text-center mb-4">Entrez le code de votre application Google Authenticator.</p>
+
+            {% if authenticationError is defined and authenticationError %}
+                <div class="alert alert-danger">Code invalide. Veuillez réessayer.</div>
+            {% endif %}
+
+            <form method="post" action="{{ path('2fa_login_check') }}">
+                <div class="mb-3">
+                    <label for="code" class="form-label">Code à 6 chiffres</label>
+                    <input type="text" id="code" name="_auth_code" class="form-control form-control-lg text-center"
+                           inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                           required autofocus autocomplete="one-time-code" placeholder="000000">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Vérifier</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
