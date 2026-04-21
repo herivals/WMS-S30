@@ -1,0 +1,12 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Nouvelle réception{% endblock %}
+{% block breadcrumb %}<a href="{{ path('reception_index') }}" style="color:var(--text-muted);text-decoration:none;">Réceptions</a> / Nouvelle{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div><h1 class="page-title">Nouvelle réception</h1></div>
+    <a href="{{ path('reception_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+</div>
+{{ include('reception/_form.html.twig') }}
+{% endblock %}

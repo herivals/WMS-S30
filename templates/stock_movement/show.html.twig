@@ -1,0 +1,79 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Mouvement #{{ movement.id }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('stock_movement_index') }}" style="color:var(--text-muted);text-decoration:none;">Mouvements</a> / #{{ movement.id }}{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+
+{% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe'} %}
+{% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb'} %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Mouvement #{{ movement.id }}</h1>
+        <p class="page-subtitle">{{ movement.date|date('d/m/Y H:i') }} — {{ movement.type.label() }}</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ path('stock_unit_show', {id: movement.charge.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-box-seam"></i> Voir l'UL</a>
+        <a href="{{ path('stock_movement_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-arrow-left-right" style="margin-right:6px;"></i>Détails du mouvement</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Date</span>
+                <span style="font-weight:500;">{{ movement.date|date('d/m/Y H:i:s') }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Type</span>
+                <span>
+                    <span style="background:{{ mvtColors[movement.type.value] ?? '#f1f5f9' }};color:{{ mvtText[movement.type.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;">
+                        {{ movement.type.label() }}
+                    </span>
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Quantité</span>
+                <span style="font-weight:600;">{{ movement.quantite }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Utilisateur</span>
+                <span style="font-weight:500;">{{ movement.userId ?? '—' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <span style="color:var(--text-muted);">Commentaire</span>
+                <span style="font-weight:500;text-align:right;max-width:60%;">{{ movement.commentaire ?? '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-box-seam" style="margin-right:6px;"></i>Unité logistique concernée</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Code charge</span>
+                <a href="{{ path('stock_unit_show', {id: movement.charge.id}) }}" style="color:var(--accent);font-weight:600;font-family:monospace;text-decoration:none;">{{ movement.charge.codeCharge }}</a>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Produit</span>
+                <a href="{{ path('product_show', {id: movement.charge.product.id}) }}" style="color:var(--accent);font-weight:500;text-decoration:none;">{{ movement.charge.product.reference }}</a>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Statut</span>
+                <span>{{ mac.status_badge_ul(movement.charge.statut) }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <span style="color:var(--text-muted);">Emplacement</span>
+                <span style="font-weight:500;">
+                    {% if movement.charge.emplacement %}
+                        <a href="{{ path('location_show', {id: movement.charge.emplacement.id}) }}" style="color:var(--accent);text-decoration:none;">{{ movement.charge.emplacement.code }}</a>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

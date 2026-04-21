@@ -1,0 +1,36 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}{{ client.nom }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('client_index') }}" style="color:var(--text-muted);text-decoration:none;">Clients</a> / {{ client.nom }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title">{{ client.nom }}</h1><p class="page-subtitle">Code : {{ client.code ?? '—' }}</p></div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ path('client_edit', {id: client.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-pencil"></i> Modifier</a>
+        <a href="{{ path('client_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-building" style="margin-right:6px;"></i>Informations</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {'Nom': client.nom, 'Code': client.code ?? '—', 'Email': client.email ?? '—'} %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span><span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-box-seam" style="margin-right:6px;"></i>UL déposées ({{ client.charges|length }})</span></div>
+        <div style="padding:12px 20px;">
+            {% for charge in client.charges|slice(0, 8) %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-color);">
+                <a href="{{ path('stock_unit_show', {id: charge.id}) }}" style="font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;">{{ charge.codeCharge }}</a>
+                {{ mac.status_badge_ul(charge.statut) }}
+            </div>
+            {% else %}<p style="color:var(--text-muted);font-size:13px;margin:0;">Aucune UL.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

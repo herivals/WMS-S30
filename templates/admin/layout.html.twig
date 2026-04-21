@@ -511,12 +511,32 @@
             <i class="bi bi-grid-1x2"></i> Tableau de bord
         </a>
 
+        <div class="nav-section-label">Stock</div>
+        <a href="{{ path('stock_dashboard') }}" class="sidebar-link {% if app.request.attributes.get('_route') == 'stock_dashboard' %}active{% endif %}">
+            <i class="bi bi-bar-chart-line"></i> Tableau de bord stock
+        </a>
+        <a href="{{ path('stock_unit_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'stock_unit' %}active{% endif %}">
+            <i class="bi bi-box-seam"></i> Unités logistiques
+        </a>
+        <a href="{{ path('product_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'product' %}active{% endif %}">
+            <i class="bi bi-upc-scan"></i> Produits
+        </a>
+        <a href="{{ path('location_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'location' %}active{% endif %}">
+            <i class="bi bi-geo-alt"></i> Emplacements
+        </a>
+        <a href="{{ path('client_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'client' %}active{% endif %}">
+            <i class="bi bi-building"></i> Clients
+        </a>
+        <a href="{{ path('reception_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'reception' %}active{% endif %}">
+            <i class="bi bi-truck"></i> Réceptions
+        </a>
+        <a href="{{ path('stock_movement_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'stock_movement' %}active{% endif %}">
+            <i class="bi bi-arrow-left-right"></i> Mouvements
+        </a>
+
         <div class="nav-section-label">Système</div>
         <a href="{{ path('admin_user_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'admin_user' %}active{% endif %}">
             <i class="bi bi-people"></i> Utilisateurs
-        </a>
-        <a href="#" class="sidebar-link">
-            <i class="bi bi-shield-lock"></i> Rôles & permissions
         </a>
         <a href="#" class="sidebar-link">
             <i class="bi bi-gear"></i> Paramètres

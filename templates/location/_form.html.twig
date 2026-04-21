@@ -1,0 +1,21 @@
+{{ form_start(form) }}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-geo-alt" style="margin-right:6px;"></i>Coordonnées</span></div>
+    <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="apex-form-group" style="grid-column:1/-1;">
+            {{ form_label(form.code, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.code, {attr: {class: 'apex-input'}}) }}{{ form_errors(form.code) }}
+        </div>
+        {% for field in ['allee', 'rack', 'niveau', 'position'] %}
+        <div class="apex-form-group">
+            {{ form_label(form[field], null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form[field], {attr: {class: 'apex-input'}}) }}{{ form_errors(form[field]) }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<div style="display:flex;gap:12px;">
+    <button type="submit" class="btn-apex btn-apex-primary"><i class="bi bi-check-lg"></i> Enregistrer</button>
+    <a href="{{ path('location_index') }}" class="btn-apex btn-apex-outline">Annuler</a>
+</div>
+{{ form_end(form) }}

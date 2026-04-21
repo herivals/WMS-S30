@@ -1,0 +1,279 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}{{ charge.codeCharge }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('stock_unit_index') }}" style="color:var(--text-muted);text-decoration:none;">Unités logistiques</a> / {{ charge.codeCharge }}{% endblock %}
+
+{% block content %}
+{{ mac.flash_messages() }}
+
+{% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe'} %}
+{% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb'} %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title" style="display:flex;align-items:center;gap:12px;">
+            {{ charge.codeCharge }}
+            {{ mac.status_badge_ul(charge.statut) }}
+        </h1>
+        <p class="page-subtitle">{{ charge.product.designation }} — {{ charge.typeUnite.label() }}</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ path('stock_unit_edit', {id: charge.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-pencil"></i> Modifier</a>
+        <a href="{{ path('stock_unit_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+        <button class="btn-apex" style="background:#dc2626;color:white;" data-bs-toggle="modal" data-bs-target="#deleteModal{{ charge.id }}"><i class="bi bi-trash"></i> Supprimer</button>
+        {{ mac.delete_modal(charge.id, charge.codeCharge, path('stock_unit_delete', {id: charge.id}), csrf_token('delete'~charge.id)) }}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;">
+
+    {# Card 1 — Identification #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-tag" style="margin-right:6px;"></i>Identification</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {
+                'Code charge': charge.codeCharge,
+                'N° de série': charge.serialNumber ?? '—',
+                'Désignation': charge.designation ?? '—',
+                'Type UL': charge.typeUnite.label(),
+                'Statut': charge.statut.label()
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 2 — Produit & Réception #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-upc-scan" style="margin-right:6px;"></i>Produit &amp; Réception</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Produit</span>
+                <a href="{{ path('product_show', {id: charge.product.id}) }}" style="color:var(--accent);font-weight:500;text-decoration:none;">{{ charge.product.reference }}</a>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Réception</span>
+                <span style="font-weight:500;">
+                    {% if charge.reception %}
+                        <a href="{{ path('reception_show', {id: charge.reception.id}) }}" style="color:var(--accent);text-decoration:none;">{{ charge.reception.reference }}</a>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Déposant</span>
+                <span style="font-weight:500;">
+                    {% if charge.owner %}
+                        <a href="{{ path('client_show', {id: charge.owner.id}) }}" style="color:var(--accent);text-decoration:none;">{{ charge.owner.nom }}</a>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Lot</span><span style="font-weight:500;">{{ charge.lot ?? '—' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <span style="color:var(--text-muted);">Lot fabrication</span><span style="font-weight:500;">{{ charge.lotFabrication ?? '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    {# Card 3 — Localisation #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-geo-alt" style="margin-right:6px;"></i>Localisation</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Emplacement</span>
+                <span style="font-weight:500;">
+                    {% if charge.emplacement %}
+                        <a href="{{ path('location_show', {id: charge.emplacement.id}) }}" style="color:var(--accent);text-decoration:none;font-family:monospace;">{{ charge.emplacement.code }}</a>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            {% for label, value in {
+                'Allée': charge.allee ?? '—',
+                'Rack': charge.rack ?? '—',
+                'Niveau': charge.niveau ?? '—',
+                'Position': charge.position ?? '—'
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span><span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 4 — Quantités #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-123" style="margin-right:6px;"></i>Quantités</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {
+                'Quantité totale': charge.quantite,
+                'Quantité réservée': charge.quantiteReservee,
+                'Quantité disponible': charge.quantiteDisponible,
+                'À regrouper': charge.quantiteARegrouper
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="font-weight:600;{{ label == 'Quantité disponible' ? 'color:#16a34a;' }}">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 5 — Traçabilité #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-clock-history" style="margin-right:6px;"></i>Traçabilité</span></div>
+        <div style="padding:20px;">
+            {% set now = "now"|date('U') %}
+            {% set dluoDepassee = charge.dluo and charge.dluo|date('U') < now %}
+            {% for label, value in {
+                'Date fabrication': charge.dateFabrication ? charge.dateFabrication|date('d/m/Y') : '—',
+                'DLUO': charge.dluo ? charge.dluo|date('d/m/Y') : '—',
+                'Dernier mouvement': charge.dateDernierMouvement ? charge.dateDernierMouvement|date('d/m/Y H:i') : '—',
+                'Dernier prélèvement': charge.dateDernierPrelevement ? charge.dateDernierPrelevement|date('d/m/Y H:i') : '—',
+                'Date création': charge.dateCreation|date('d/m/Y H:i'),
+                'Créée par': charge.createdBy ?? '—'
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="font-weight:500;{{ label == 'DLUO' and dluoDepassee ? 'color:#dc2626;font-weight:600;' }}">
+                    {{ value }}
+                    {% if label == 'DLUO' and dluoDepassee %} <i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 6 — Dimensions physiques #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-rulers" style="margin-right:6px;"></i>Dimensions physiques</span></div>
+        <div style="padding:20px;">
+            {% for label, value, unit in [
+                ['Poids', charge.poids, 'kg'],
+                ['Largeur', charge.largeur, 'cm'],
+                ['Hauteur', charge.hauteur, 'cm'],
+                ['Profondeur', charge.profondeur, 'cm']
+            ] %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="font-weight:500;">{{ value is not null ? value ~ ' ' ~ unit : '—' }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 7 — Logistique & Métier #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-truck" style="margin-right:6px;"></i>Logistique &amp; Métier</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {
+                'Type réception': charge.typeReception ? charge.typeReception.label() : '—',
+                'Type flux': charge.typeFlux ? charge.typeFlux.label() : '—',
+                'État': charge.etat.label(),
+                'Famille logistique': charge.familleLogistique ?? '—'
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span><span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Card 8 — Atelier #}
+    {% if charge.tempsAtelier is not null or charge.technicien or charge.etatFinal %}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-tools" style="margin-right:6px;"></i>Atelier</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {
+                'Temps atelier': charge.tempsAtelier is not null ? charge.tempsAtelier ~ ' h' : '—',
+                'Technicien': charge.technicien ?? '—',
+                'État final': charge.etatFinal ?? '—'
+            } %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span><span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Card 9 — Facturation #}
+    {% if charge.prixAchat is not null or charge.uniteFacturation %}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-cash-coin" style="margin-right:6px;"></i>Facturation</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Prix d'achat</span>
+                <span style="font-weight:500;">{{ charge.prixAchat is not null ? charge.prixAchat ~ ' €' : '—' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <span style="color:var(--text-muted);">Unité facturation</span>
+                <span style="font-weight:500;">{{ charge.uniteFacturation ?? '—' }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Card 10 — Flags #}
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-flag" style="margin-right:6px;"></i>Flags</span></div>
+        <div style="padding:20px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Multi-référence</span>
+                {{ mac.bool_badge(charge.multiReference) }}
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">À inventorier</span>
+                {{ mac.bool_badge(charge.aInventorier) }}
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">Rebut</span>
+                {{ mac.bool_badge(charge.estRebut) }}
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <span style="color:var(--text-muted);">Bloquée</span>
+                {{ mac.bool_badge(charge.estBloque) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Section mouvements #}
+<div class="apex-card" style="margin-top:16px;">
+    <div class="apex-card-header">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-arrow-left-right" style="margin-right:6px;"></i>10 derniers mouvements</span>
+        <a href="{{ path('stock_movement_index') }}" class="btn-apex btn-apex-outline" style="font-size:12px;padding:4px 10px;">Tous les mouvements</a>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr><th>Date</th><th>Type</th><th>Quantité</th><th>Utilisateur</th><th>Commentaire</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody>
+            {% for mvt in mouvements ?? [] %}
+            <tr>
+                <td style="font-size:12px;color:var(--text-muted);">{{ mvt.date|date('d/m/Y H:i') }}</td>
+                <td>
+                    <span style="background:{{ mvtColors[mvt.type.value] ?? '#f1f5f9' }};color:{{ mvtText[mvt.type.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;">
+                        {{ mvt.type.label() }}
+                    </span>
+                </td>
+                <td style="font-weight:600;font-size:13px;">{{ mvt.quantite }}</td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ mvt.userId ?? '—' }}</td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ mvt.commentaire ?? '—' }}</td>
+                <td style="text-align:right;">
+                    <a href="{{ path('stock_movement_show', {id: mvt.id}) }}" class="action-btn" title="Voir"><i class="bi bi-eye"></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">
+                <i class="bi bi-arrow-left-right" style="font-size:24px;display:block;margin-bottom:6px;"></i>
+                Aucun mouvement pour cette UL.
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

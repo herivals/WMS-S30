@@ -1,0 +1,132 @@
+{{ form_start(form) }}
+
+{% macro field(field, full) %}
+    <div class="apex-form-group" style="{{ full ? 'grid-column:1/-1;' }}">
+        {{ form_label(field, null, {label_attr: {class: 'apex-label'}}) }}
+        {{ form_widget(field, {attr: {class: 'apex-input'}}) }}
+        {{ form_errors(field) }}
+    </div>
+{% endmacro %}
+{% import _self as f %}
+
+{# Card 1 — Identification #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-tag" style="margin-right:6px;"></i>Identification</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        {{ f.field(form.codeCharge) }}
+        {{ f.field(form.serialNumber) }}
+        {{ f.field(form.typeUnite) }}
+        {{ f.field(form.designation, true) }}
+        {{ f.field(form.statut) }}
+        {{ f.field(form.etat) }}
+    </div>
+</div>
+
+{# Card 2 — Relations #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-link-45deg" style="margin-right:6px;"></i>Relations</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        {{ f.field(form.product) }}
+        {{ f.field(form.reception) }}
+        {{ f.field(form.owner) }}
+        {{ f.field(form.emplacement) }}
+    </div>
+</div>
+
+{# Card 3 — Quantités #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-123" style="margin-right:6px;"></i>Quantités</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+        {{ f.field(form.quantite) }}
+        {{ f.field(form.quantiteReservee) }}
+        {{ f.field(form.quantiteARegrouper) }}
+        <div class="apex-form-group">
+            <label class="apex-label">Quantité disponible</label>
+            <input type="text" class="apex-input" disabled value="{{ charge.quantiteDisponible ?? 0 }}">
+            <small style="color:var(--text-muted);font-size:12px;">Calculée automatiquement.</small>
+        </div>
+    </div>
+</div>
+
+{# Card 4 — Lot & Traçabilité #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-clock-history" style="margin-right:6px;"></i>Lot &amp; Traçabilité</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        {{ f.field(form.lot) }}
+        {{ f.field(form.lotFabrication) }}
+        {{ f.field(form.dateFabrication) }}
+        {{ f.field(form.dluo) }}
+    </div>
+</div>
+
+{# Card 5 — Dimensions #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-rulers" style="margin-right:6px;"></i>Dimensions physiques</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+        {{ f.field(form.poids) }}
+        {{ f.field(form.largeur) }}
+        {{ f.field(form.hauteur) }}
+        {{ f.field(form.profondeur) }}
+    </div>
+</div>
+
+{# Card 6 — Logistique #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-truck" style="margin-right:6px;"></i>Logistique &amp; Métier</span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        {{ f.field(form.typeReception) }}
+        {{ f.field(form.typeFlux) }}
+        {{ f.field(form.familleLogistique, true) }}
+    </div>
+</div>
+
+{# Card 7 — Atelier (collapse) #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#cardAtelier">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-tools" style="margin-right:6px;"></i>Atelier</span>
+        <i class="bi bi-chevron-down" style="color:var(--text-muted);"></i>
+    </div>
+    <div id="cardAtelier" class="collapse">
+        <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            {{ f.field(form.tempsAtelier) }}
+            {{ f.field(form.technicien) }}
+            {{ f.field(form.etatFinal) }}
+        </div>
+    </div>
+</div>
+
+{# Card 8 — Facturation (collapse) #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#cardFacturation">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-cash-coin" style="margin-right:6px;"></i>Facturation</span>
+        <i class="bi bi-chevron-down" style="color:var(--text-muted);"></i>
+    </div>
+    <div id="cardFacturation" class="collapse">
+        <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            {{ f.field(form.prixAchat) }}
+            {{ f.field(form.uniteFacturation) }}
+        </div>
+    </div>
+</div>
+
+{# Card 9 — Flags #}
+<div class="apex-card" style="margin-bottom:16px;">
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-flag" style="margin-right:6px;"></i>Flags</span></div>
+    <div style="padding:20px;display:flex;gap:24px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            {{ form_widget(form.multiReference) }} {{ form.multiReference.vars.label }}
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            {{ form_widget(form.aInventorier) }} {{ form.aInventorier.vars.label }}
+        </label>
+    </div>
+</div>
+
+{{ form_errors(form) }}
+
+<div style="display:flex;gap:12px;margin-top:16px;">
+    <button type="submit" class="btn-apex btn-apex-primary"><i class="bi bi-check-lg"></i> Enregistrer</button>
+    <a href="{{ charge.id ? path('stock_unit_show', {id: charge.id}) : path('stock_unit_index') }}" class="btn-apex btn-apex-outline">Annuler</a>
+</div>
+
+{{ form_end(form) }}

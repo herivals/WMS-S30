@@ -1,0 +1,7 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Nouvel emplacement{% endblock %}
+{% block breadcrumb %}<a href="{{ path('location_index') }}" style="color:var(--text-muted);text-decoration:none;">Emplacements</a> / Nouveau{% endblock %}
+{% block content %}{{ mac.flash_messages() }}
+<div class="page-header"><div><h1 class="page-title">Nouvel emplacement</h1></div><a href="{{ path('location_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a></div>
+{{ include('location/_form.html.twig') }}{% endblock %}

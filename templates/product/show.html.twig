@@ -1,0 +1,45 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}{{ product.reference }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('product_index') }}" style="color:var(--text-muted);text-decoration:none;">Produits</a> / {{ product.reference }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title">{{ product.designation }}</h1><p class="page-subtitle">Référence : {{ product.reference }}</p></div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ path('product_edit', {id: product.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-pencil"></i> Modifier</a>
+        <a href="{{ path('product_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="apex-card">
+        <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-upc-scan" style="margin-right:6px;"></i>Identification</span></div>
+        <div style="padding:20px;">
+            {% for label, value in {'Référence': product.reference, 'Désignation': product.designation, 'EAN13': product.ean13 ?? '—', 'GTIN': product.gtin ?? '—'} %}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="apex-card">
+        <div class="apex-card-header">
+            <span style="font-weight:600;font-size:14px;"><i class="bi bi-box-seam" style="margin-right:6px;"></i>Unités logistiques ({{ product.charges|length }})</span>
+            <a href="{{ path('stock_unit_index') }}?search={{ product.reference }}" class="btn-apex btn-apex-outline" style="font-size:12px;padding:4px 10px;">Voir toutes</a>
+        </div>
+        <div style="padding:12px 20px;">
+            {% for charge in product.charges|slice(0, 8) %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-color);">
+                <a href="{{ path('stock_unit_show', {id: charge.id}) }}" style="font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;">{{ charge.codeCharge }}</a>
+                {{ mac.status_badge_ul(charge.statut) }}
+            </div>
+            {% else %}
+            <p style="color:var(--text-muted);font-size:13px;margin:0;">Aucune UL liée.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

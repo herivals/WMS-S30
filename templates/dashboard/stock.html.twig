@@ -1,0 +1,146 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+
+{% block title %}Dashboard Stock{% endblock %}
+{% block breadcrumb %}Tableau de bord stock{% endblock %}
+
+{% block content %}
+{{ mac.flash_messages() }}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tableau de bord Stock</h1>
+        <p class="page-subtitle">Vue d'ensemble du module logistique.</p>
+    </div>
+    <a href="{{ path('stock_unit_new') }}" class="btn-apex btn-apex-primary">
+        <i class="bi bi-plus-lg"></i> Nouvelle UL
+    </a>
+</div>
+
+{# Métriques #}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+    {% set metrics = [
+        {label: 'Total UL', value: totalUL, icon: 'box-seam', color: '#ede9fe', icolor: '#7c3aed', route: 'stock_unit_index'},
+        {label: 'Disponibles', value: disponibles, icon: 'check-circle', color: '#dcfce7', icolor: '#16a34a', route: 'stock_unit_index', q: {statut: 'disponible'}},
+        {label: 'Réservées', value: reservees, icon: 'clock', color: '#fef3c7', icolor: '#d97706', route: 'stock_unit_index', q: {statut: 'réservé'}},
+        {label: 'Bloquées / Rebuts', value: bloqueesRebuts, icon: 'exclamation-triangle', color: '#fee2e2', icolor: '#dc2626', route: 'stock_unit_index'},
+    ] %}
+    {% for m in metrics %}
+    <div class="apex-card" style="padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <span style="font-size:13px;color:var(--text-muted);font-weight:500;">{{ m.label }}</span>
+            <div style="width:36px;height:36px;background:{{ m.color }};border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-{{ m.icon }}" style="color:{{ m.icolor }};"></i>
+            </div>
+        </div>
+        <div style="font-size:28px;font-weight:700;">{{ m.value }}</div>
+        <div style="margin-top:6px;">
+            <a href="{{ path(m.route) }}" style="font-size:12px;color:var(--accent);text-decoration:none;">Voir →</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# Ligne 2 #}
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
+    {# Derniers mouvements #}
+    <div class="apex-card">
+        <div class="apex-card-header">
+            <span style="font-weight:600;font-size:14px;"><i class="bi bi-arrow-left-right" style="margin-right:6px;"></i>Derniers mouvements</span>
+            <a href="{{ path('stock_movement_index') }}" class="btn-apex btn-apex-outline" style="font-size:12px;padding:4px 10px;">Tout voir</a>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="apex-table">
+                <thead><tr>
+                    <th>Date</th><th>UL</th><th>Type</th><th>Quantité</th>
+                </tr></thead>
+                <tbody>
+                {% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe'} %}
+                {% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb'} %}
+                {% for m in derniersMvts %}
+                <tr>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ m.date|date('d/m/Y H:i') }}</td>
+                    <td><a href="{{ path('stock_unit_show', {id: m.charge.id}) }}" style="color:var(--accent);font-size:13px;font-weight:600;">{{ m.charge.codeCharge }}</a></td>
+                    <td>
+                        <span style="background:{{ mvtColors[m.type.value] ?? '#f1f5f9' }};color:{{ mvtText[m.type.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;">
+                            {{ m.type.label() }}
+                        </span>
+                    </td>
+                    <td style="font-size:13px;font-weight:600;">{{ m.quantite }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">Aucun mouvement.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Répartition type UL #}
+    <div class="apex-card">
+        <div class="apex-card-header">
+            <span style="font-weight:600;font-size:14px;"><i class="bi bi-pie-chart" style="margin-right:6px;"></i>Répartition type UL</span>
+        </div>
+        <div style="padding:20px;">
+            {% set typeColors = {'PAL': '#7c3aed', 'COLIS': '#2563eb', 'UNITE': '#16a34a'} %}
+            {% set typeLabels = {'PAL': 'Palette', 'COLIS': 'Colis', 'UNITE': 'Unité'} %}
+            {% for type, count in repartitionType %}
+            {% set pct = totalUL > 0 ? (count / totalUL * 100)|round : 0 %}
+            <div style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                    <span style="font-weight:500;">{{ typeLabels[type] ?? type }}</span>
+                    <span style="color:var(--text-muted);">{{ count }} ({{ pct }}%)</span>
+                </div>
+                <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                    <div style="height:100%;width:{{ pct }}%;background:{{ typeColors[type] ?? '#94a3b8' }};border-radius:4px;transition:width .5s;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# Alertes métier #}
+{% if dluoDepassees|length > 0 or aInventorier|length > 0 or bloquees|length > 0 %}
+<div class="apex-card">
+    <div class="apex-card-header">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-bell" style="margin-right:6px;color:#d97706;"></i>Alertes métier</span>
+    </div>
+    <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+        {% if dluoDepassees|length > 0 %}
+        <div>
+            <div style="font-size:12px;font-weight:600;color:#dc2626;margin-bottom:8px;"><i class="bi bi-calendar-x"></i> DLUO dépassée ({{ dluoDepassees|length }})</div>
+            {% for c in dluoDepassees %}
+            <div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
+                <a href="{{ path('stock_unit_show', {id: c.id}) }}" style="color:var(--text-primary);text-decoration:none;">{{ c.codeCharge }}</a>
+                <span style="color:var(--text-muted);float:right;">{{ c.dluo|date('d/m/Y') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if aInventorier|length > 0 %}
+        <div>
+            <div style="font-size:12px;font-weight:600;color:#d97706;margin-bottom:8px;"><i class="bi bi-clipboard-check"></i> À inventorier ({{ aInventorier|length }})</div>
+            {% for c in aInventorier %}
+            <div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
+                <a href="{{ path('stock_unit_show', {id: c.id}) }}" style="color:var(--text-primary);text-decoration:none;">{{ c.codeCharge }}</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if bloquees|length > 0 %}
+        <div>
+            <div style="font-size:12px;font-weight:600;color:#dc2626;margin-bottom:8px;"><i class="bi bi-lock"></i> Bloquées ({{ bloquees|length }})</div>
+            {% for c in bloquees %}
+            <div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border-color);">
+                <a href="{{ path('stock_unit_show', {id: c.id}) }}" style="color:var(--text-primary);text-decoration:none;">{{ c.codeCharge }}</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Clients{% endblock %}
+{% block breadcrumb %}Stock / Clients{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div><h1 class="page-title">Clients</h1><p class="page-subtitle">{{ clients|length }} client(s).</p></div>
+    <a href="{{ path('client_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouveau client</a>
+</div>
+<div class="apex-card">
+    <div class="apex-card-header">
+        <form method="get" style="display:flex;gap:8px;">
+            <div class="search-input-wrapper"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search }}" placeholder="Nom, code..."></div>
+            <button type="submit" class="btn-apex btn-apex-outline"><i class="bi bi-search"></i></button>
+            {% if search %}<a href="{{ path('client_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-x"></i></a>{% endif %}
+        </form>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr><th>Nom</th><th>Code</th><th>Email</th><th>UL déposées</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody>
+            {% for client in clients %}
+            <tr>
+                <td style="font-weight:600;">{{ client.nom }}</td>
+                <td><span style="font-family:monospace;font-size:12px;background:#f1f5f9;padding:2px 6px;border-radius:4px;">{{ client.code ?? '—' }}</span></td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ client.email ?? '—' }}</td>
+                <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">{{ client.charges|length }}</span></td>
+                <td style="text-align:right;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                        <a href="{{ path('client_show', {id: client.id}) }}" class="action-btn"><i class="bi bi-eye"></i></a>
+                        <a href="{{ path('client_edit', {id: client.id}) }}" class="action-btn"><i class="bi bi-pencil"></i></a>
+                        <button class="action-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ client.id }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                    {{ mac.delete_modal(client.id, client.nom, path('client_delete', {id: client.id}), csrf_token('delete'~client.id)) }}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-building" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucun client.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="apex-pagination"><span class="pagination-info">{{ clients|length }} résultat(s)</span></div>
+</div>
+{% endblock %}

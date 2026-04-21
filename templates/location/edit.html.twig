@@ -1,0 +1,7 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Modifier {{ location.code }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('location_index') }}" style="color:var(--text-muted);text-decoration:none;">Emplacements</a> / Modifier{% endblock %}
+{% block content %}{{ mac.flash_messages() }}
+<div class="page-header"><div><h1 class="page-title">Modifier {{ location.code }}</h1></div><a href="{{ path('location_show', {id: location.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a></div>
+{{ include('location/_form.html.twig') }}{% endblock %}

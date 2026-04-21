@@ -1,0 +1,50 @@
+{% macro flash_messages() %}
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash-alert flash-{{ type == 'error' ? 'error' : (type == 'warning' ? 'warning' : 'success') }}" style="margin-bottom:12px;">
+                <i class="bi bi-{{ type == 'success' ? 'check-circle' : (type == 'warning' ? 'exclamation-triangle' : 'exclamation-circle') }}"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro delete_modal(id, label, deleteUrl, token) %}
+<div class="modal fade" id="deleteModal{{ id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Confirmer la suppression</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" style="font-size:13px;color:var(--text-muted);">
+                Supprimer <strong>{{ label }}</strong> ? Cette action est irréversible.
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button class="btn-apex btn-apex-outline btn-sm" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ deleteUrl }}">
+                    <input type="hidden" name="_token" value="{{ token }}">
+                    <button type="submit" class="btn-apex" style="background:#dc2626;color:white;padding:5px 12px;border-radius:7px;font-size:13px;font-weight:600;">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro status_badge_ul(statut) %}
+{% set classes = {'disponible': 'active', 'réservé': 'warning', 'bloqué': 'inactive', 'rebut': 'secondary'} %}
+{% set icons = {'disponible': 'check-circle', 'réservé': 'clock', 'bloqué': 'lock', 'rebut': 'x-circle'} %}
+<span class="status-badge {{ statut.value == 'disponible' ? 'active' : (statut.value == 'réservé' ? '' : 'inactive') }}"
+      style="{{ statut.value == 'réservé' ? 'background:#fef3c7;color:#d97706;' : (statut.value == 'rebut' ? 'background:#f1f5f9;color:#64748b;' : '') }}">
+    <span class="status-dot"></span>{{ statut.label() }}
+</span>
+{% endmacro %}
+
+{% macro bool_badge(value, trueLabel, falseLabel) %}
+{% if value %}
+    <span style="color:#16a34a;font-size:13px;"><i class="bi bi-check-circle-fill"></i> {{ trueLabel ?? 'Oui' }}</span>
+{% else %}
+    <span style="color:#94a3b8;font-size:13px;"><i class="bi bi-dash-circle"></i> {{ falseLabel ?? 'Non' }}</span>
+{% endif %}
+{% endmacro %}

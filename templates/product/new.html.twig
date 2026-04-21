@@ -1,0 +1,12 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Nouveau produit{% endblock %}
+{% block breadcrumb %}<a href="{{ path('product_index') }}" style="color:var(--text-muted);text-decoration:none;">Produits</a> / Nouveau{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div><h1 class="page-title">Nouveau produit</h1></div>
+    <a href="{{ path('product_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
+</div>
+{{ include('product/_form.html.twig') }}
+{% endblock %}

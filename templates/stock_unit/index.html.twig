@@ -1,0 +1,95 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Unités logistiques{% endblock %}
+{% block breadcrumb %}Stock / Unités logistiques{% endblock %}
+
+{% block content %}
+{{ mac.flash_messages() }}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Unités logistiques</h1>
+        <p class="page-subtitle">{{ stockUnits|length }} UL référencée(s).</p>
+    </div>
+    <a href="{{ path('stock_unit_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouvelle UL</a>
+</div>
+
+<div class="apex-card">
+    <div class="apex-card-header">
+        <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="search-input-wrapper"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search }}" placeholder="Code charge, produit..."></div>
+            <select name="statut" class="apex-input" style="width:auto;padding:6px 10px;font-size:13px;">
+                <option value="">— Tous statuts —</option>
+                {% for s in statuts %}
+                    <option value="{{ s.value }}" {{ statut == s.value ? 'selected' }}>{{ s.label() }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-apex btn-apex-outline"><i class="bi bi-search"></i></button>
+            {% if search or statut %}<a href="{{ path('stock_unit_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-x"></i></a>{% endif %}
+        </form>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr>
+                <th>Code charge</th>
+                <th>Produit</th>
+                <th>Type UL</th>
+                <th>Statut</th>
+                <th>Emplacement</th>
+                <th>Qté dispo</th>
+                <th>Créée le</th>
+                <th style="text-align:right;">Actions</th>
+            </tr></thead>
+            <tbody>
+            {% set typeColors = {'PAL': '#ede9fe', 'COLIS': '#dbeafe', 'UNITE': '#dcfce7'} %}
+            {% set typeText   = {'PAL': '#7c3aed', 'COLIS': '#2563eb', 'UNITE': '#16a34a'} %}
+            {% for stockUnit in stockUnits %}
+            <tr>
+                <td style="font-weight:600;font-family:monospace;font-size:13px;">{{ stockUnit.codeCharge }}</td>
+                <td>
+                    <a href="{{ path('product_show', {id: stockUnit.product.id}) }}" style="color:var(--text-primary);text-decoration:none;">
+                        <div style="font-weight:500;font-size:13px;">{{ stockUnit.product.reference }}</div>
+                        <div style="font-size:12px;color:var(--text-muted);">{{ stockUnit.product.designation }}</div>
+                    </a>
+                </td>
+                <td>
+                    <span style="background:{{ typeColors[stockUnit.typeUnite.value] ?? '#f1f5f9' }};color:{{ typeText[stockUnit.typeUnite.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">
+                        {{ stockUnit.typeUnite.value }}
+                    </span>
+                </td>
+                <td>{{ mac.status_badge_ul(stockUnit.statut) }}</td>
+                <td>
+                    {% if stockUnit.emplacement %}
+                        <a href="{{ path('location_show', {id: stockUnit.emplacement.id}) }}" style="color:var(--accent);text-decoration:none;font-size:13px;font-family:monospace;">{{ stockUnit.emplacement.code }}</a>
+                    {% else %}
+                        <span style="color:var(--text-muted);">—</span>
+                    {% endif %}
+                </td>
+                <td style="font-weight:600;font-size:13px;">
+                    {{ stockUnit.quantiteDisponible }}
+                    {% if stockUnit.quantiteReservee > 0 %}
+                        <span style="color:var(--text-muted);font-weight:400;font-size:11px;"> / {{ stockUnit.quantite }}</span>
+                    {% endif %}
+                </td>
+                <td style="color:var(--text-muted);font-size:12px;">{{ stockUnit.dateCreation|date('d/m/Y') }}</td>
+                <td style="text-align:right;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                        <a href="{{ path('stock_unit_show', {id: stockUnit.id}) }}" class="action-btn" title="Voir"><i class="bi bi-eye"></i></a>
+                        <a href="{{ path('stock_unit_edit', {id: stockUnit.id}) }}" class="action-btn" title="Modifier"><i class="bi bi-pencil"></i></a>
+                        <button class="action-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ stockUnit.id }}" title="Supprimer"><i class="bi bi-trash"></i></button>
+                    </div>
+                    {{ mac.delete_modal(stockUnit.id, stockUnit.codeCharge, path('stock_unit_delete', {id: stockUnit.id}), csrf_token('delete'~stockUnit.id)) }}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted);">
+                <i class="bi bi-box-seam" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+                Aucune unité logistique trouvée.
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="apex-pagination"><span class="pagination-info">{{ stockUnits|length }} résultat(s)</span></div>
+</div>
+{% endblock %}

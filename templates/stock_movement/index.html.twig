@@ -1,0 +1,54 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Mouvements de stock{% endblock %}
+{% block breadcrumb %}Stock / Mouvements{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Mouvements de stock</h1>
+        <p class="page-subtitle">{{ movements|length }} mouvement(s) récent(s).</p>
+    </div>
+    <a href="{{ path('stock_dashboard') }}" class="btn-apex btn-apex-outline"><i class="bi bi-bar-chart-line"></i> Tableau de bord</a>
+</div>
+
+<div class="apex-card">
+    <div class="apex-card-header">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-arrow-left-right" style="margin-right:6px;"></i>Derniers mouvements</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr>
+                <th>Date</th><th>UL</th><th>Type</th><th>Quantité</th><th>Utilisateur</th><th style="text-align:right;">Actions</th>
+            </tr></thead>
+            <tbody>
+            {% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe'} %}
+            {% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb'} %}
+            {% for mvt in movements %}
+            <tr>
+                <td style="font-size:12px;color:var(--text-muted);">{{ mvt.date|date('d/m/Y H:i') }}</td>
+                <td>
+                    <a href="{{ path('stock_unit_show', {id: mvt.charge.id}) }}" style="color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;font-family:monospace;">
+                        {{ mvt.charge.codeCharge }}
+                    </a>
+                </td>
+                <td>
+                    <span style="background:{{ mvtColors[mvt.type.value] ?? '#f1f5f9' }};color:{{ mvtText[mvt.type.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;">
+                        {{ mvt.type.label() }}
+                    </span>
+                </td>
+                <td style="font-size:13px;font-weight:600;">{{ mvt.quantite }}</td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ mvt.userId ?? '—' }}</td>
+                <td style="text-align:right;">
+                    <a href="{{ path('stock_movement_show', {id: mvt.id}) }}" class="action-btn" title="Voir"><i class="bi bi-eye"></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-arrow-left-right" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucun mouvement enregistré.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="apex-pagination"><span class="pagination-info">{{ movements|length }} résultat(s)</span></div>
+</div>
+{% endblock %}

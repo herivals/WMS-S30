@@ -1,0 +1,54 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Emplacements{% endblock %}
+{% block breadcrumb %}Stock / Emplacements{% endblock %}
+
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div><h1 class="page-title">Emplacements</h1><p class="page-subtitle">{{ locations|length }} emplacement(s) configuré(s).</p></div>
+    <a href="{{ path('location_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouvel emplacement</a>
+</div>
+
+<div class="apex-card">
+    <div class="apex-card-header">
+        <form method="get" style="display:flex;gap:8px;">
+            <div class="search-input-wrapper"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search }}" placeholder="Code emplacement..."></div>
+            <input type="text" name="allee" value="{{ allee }}" placeholder="Allée" class="apex-input" style="width:80px;">
+            <button type="submit" class="btn-apex btn-apex-outline"><i class="bi bi-search"></i></button>
+            {% if search or allee %}<a href="{{ path('location_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-x"></i></a>{% endif %}
+        </form>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr><th>Code</th><th>Allée</th><th>Rack</th><th>Niveau</th><th>Position</th><th>UL présentes</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody>
+            {% for location in locations %}
+            <tr>
+                <td><span style="font-weight:600;font-family:monospace;">{{ location.code }}</span></td>
+                <td>{{ location.allee ?? '—' }}</td>
+                <td>{{ location.rack ?? '—' }}</td>
+                <td>{{ location.niveau ?? '—' }}</td>
+                <td>{{ location.position ?? '—' }}</td>
+                <td>
+                    {% set nbCharges = location.charges|length %}
+                    <span style="background:{{ nbCharges > 0 ? '#dcfce7' : '#f1f5f9' }};color:{{ nbCharges > 0 ? '#16a34a' : '#94a3b8' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">{{ nbCharges }}</span>
+                </td>
+                <td style="text-align:right;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                        <a href="{{ path('location_show', {id: location.id}) }}" class="action-btn" title="Voir"><i class="bi bi-eye"></i></a>
+                        <a href="{{ path('location_edit', {id: location.id}) }}" class="action-btn" title="Modifier"><i class="bi bi-pencil"></i></a>
+                        <button class="action-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ location.id }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                    {{ mac.delete_modal(location.id, location.code, path('location_delete', {id: location.id}), csrf_token('delete'~location.id)) }}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-geo-alt" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucun emplacement trouvé.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="apex-pagination"><span class="pagination-info">{{ locations|length }} résultat(s)</span></div>
+</div>
+{% endblock %}

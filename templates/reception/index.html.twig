@@ -1,0 +1,52 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Réceptions{% endblock %}
+{% block breadcrumb %}Stock / Réceptions{% endblock %}
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div><h1 class="page-title">Réceptions</h1><p class="page-subtitle">{{ receptions|length }} réception(s).</p></div>
+    <a href="{{ path('reception_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouvelle réception</a>
+</div>
+<div class="apex-card">
+    <div class="apex-card-header">
+        <form method="get" style="display:flex;gap:8px;">
+            <div class="search-input-wrapper"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search }}" placeholder="Référence..."></div>
+            <button type="submit" class="btn-apex btn-apex-outline"><i class="bi bi-search"></i></button>
+            {% if search %}<a href="{{ path('reception_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-x"></i></a>{% endif %}
+        </form>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead><tr><th>Référence</th><th>Date</th><th>Type</th><th>UL réceptionnées</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody>
+            {% set typeColors = {'standard': '#dcfce7', 'retour': '#fef3c7', 'transfert': '#dbeafe'} %}
+            {% set typeText = {'standard': '#16a34a', 'retour': '#d97706', 'transfert': '#2563eb'} %}
+            {% for reception in receptions %}
+            <tr>
+                <td style="font-weight:600;font-family:monospace;">{{ reception.reference }}</td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ reception.date|date('d/m/Y') }}</td>
+                <td>
+                    <span style="background:{{ typeColors[reception.typeReception.value] ?? '#f1f5f9' }};color:{{ typeText[reception.typeReception.value] ?? '#64748b' }};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:500;">
+                        {{ reception.typeReception.label() }}
+                    </span>
+                </td>
+                <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">{{ reception.charges|length }}</span></td>
+                <td style="text-align:right;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                        <a href="{{ path('reception_show', {id: reception.id}) }}" class="action-btn"><i class="bi bi-eye"></i></a>
+                        <a href="{{ path('reception_edit', {id: reception.id}) }}" class="action-btn"><i class="bi bi-pencil"></i></a>
+                        <button class="action-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ reception.id }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                    {{ mac.delete_modal(reception.id, reception.reference, path('reception_delete', {id: reception.id}), csrf_token('delete'~reception.id)) }}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-truck" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucune réception.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="apex-pagination"><span class="pagination-info">{{ receptions|length }} résultat(s)</span></div>
+</div>
+{% endblock %}
