@@ -12,14 +12,18 @@
                     <p>Scannez ce QR code avec votre application <strong>Google Authenticator</strong> :</p>
 
                     <div class="text-center my-4">
-                        <img src="https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl={{ qr_code_url|url_encode }}"
-                             alt="QR Code 2FA" class="img-fluid border p-2 rounded">
+                        <img src="{{ path('app_2fa_qrcode') }}"
+                             alt="QR Code 2FA"
+                             class="img-fluid border p-2 rounded"
+                             style="max-width:250px;">
                     </div>
 
                     <p class="text-muted small">Ou entrez manuellement cette clé dans l'application :</p>
-                    <code class="d-block p-2 bg-light rounded text-center mb-4">{{ secret }}</code>
+                    <code class="d-block p-2 bg-light rounded text-center mb-4" style="letter-spacing:2px;font-size:16px;">
+                        {{ secret }}
+                    </code>
 
-                    <p>Une fois configuré, reconnectez-vous pour activer la vérification 2FA.</p>
+                    <p class="text-muted small">Une fois le code scanné, reconnectez-vous pour activer la vérification 2FA.</p>
                     <a href="{{ path('app_dashboard') }}" class="btn btn-primary w-100">Terminer</a>
                 </div>
             </div>

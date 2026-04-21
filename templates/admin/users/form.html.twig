@@ -1,0 +1,70 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('admin_user_index') }}" style="color:var(--text-muted);text-decoration:none;">Utilisateurs</a> / {{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">
+            {% if user.id %}Modifier les informations de {{ user.displayName }}.
+            {% else %}Créer un nouveau compte utilisateur.{% endif %}
+        </p>
+    </div>
+    <a href="{{ path('admin_user_index') }}" class="btn-apex btn-apex-outline">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="apex-card form-card">
+    <div class="apex-card-header">
+        <span style="font-weight:600;font-size:14px;">
+            <i class="bi bi-person-circle" style="margin-right:6px;"></i>
+            Informations utilisateur
+        </span>
+    </div>
+    <div style="padding:24px;">
+        {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+
+        <div class="apex-form-group">
+            {{ form_label(form.fullName, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.fullName, {attr: {class: 'apex-input' ~ (form.fullName.vars.errors|length ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.fullName) }}
+        </div>
+
+        <div class="apex-form-group">
+            {{ form_label(form.email, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.email, {attr: {class: 'apex-input' ~ (form.email.vars.errors|length ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="apex-form-group">
+            {{ form_label(form.plainPassword, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.plainPassword, {attr: {class: 'apex-input' ~ (form.plainPassword.vars.errors|length ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.plainPassword) }}
+        </div>
+
+        <div class="apex-form-group">
+            {{ form_label(form.roles, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.roles, {attr: {class: 'apex-input' ~ (form.roles.vars.errors|length ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.roles) }}
+        </div>
+
+        <div class="apex-form-group" style="display:flex;align-items:center;gap:10px;">
+            {{ form_widget(form.isActive, {attr: {class: 'form-check-input', style: 'width:18px;height:18px;cursor:pointer;'}}) }}
+            {{ form_label(form.isActive, null, {label_attr: {class: 'apex-label', style: 'margin:0;cursor:pointer;'}}) }}
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn-apex btn-apex-primary">
+                <i class="bi bi-check-lg"></i>
+                {{ user.id ? 'Enregistrer les modifications' : 'Créer l\'utilisateur' }}
+            </button>
+            <a href="{{ path('admin_user_index') }}" class="btn-apex btn-apex-outline">Annuler</a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

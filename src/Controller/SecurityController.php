@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -37,9 +40,10 @@ class SecurityController extends AbstractController
         GoogleAuthenticatorInterface $googleAuthenticator,
         EntityManagerInterface $em
     ): Response {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         /** @var User $user */
         $user = $this->getUser();
-        $this->denyAccessUnlessGranted('ROLE_USER');
 
         if (!$user->isGoogleAuthenticatorEnabled()) {
             $secret = $googleAuthenticator->generateSecret();
@@ -47,12 +51,36 @@ class SecurityController extends AbstractController
             $em->flush();
         }
 
-        $qrCodeUrl = $googleAuthenticator->getQRContent($user);
-
         return $this->render('security/enable_2fa.html.twig', [
-            'qr_code_url' => $qrCodeUrl,
             'secret' => $user->getGoogleAuthenticatorSecret(),
         ]);
+    }
+
+    #[Route('/2fa/qrcode', name: 'app_2fa_qrcode')]
+    public function qrCode(GoogleAuthenticatorInterface $googleAuthenticator): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->isGoogleAuthenticatorEnabled()) {
+            throw $this->createNotFoundException();
+        }
+
+        $qrContent = $googleAuthenticator->getQRContent($user);
+
+        $qrCode = new QrCode(
+            data: $qrContent,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 250,
+            margin: 10,
+        );
+
+        $result = (new PngWriter())->write($qrCode);
+
+        return new Response($result->getString(), 200, ['Content-Type' => 'image/png']);
     }
 
     #[Route('/2fa/disable', name: 'app_2fa_disable')]

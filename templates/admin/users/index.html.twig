@@ -1,0 +1,192 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Utilisateurs{% endblock %}
+{% block breadcrumb %}Utilisateurs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Utilisateurs</h1>
+        <p class="page-subtitle">Gérez les comptes utilisateurs de votre application.</p>
+    </div>
+    <a href="{{ path('admin_user_new') }}" class="btn-apex btn-apex-primary">
+        <i class="bi bi-plus-lg"></i> Nouvel utilisateur
+    </a>
+</div>
+
+<div class="apex-card">
+    <!-- Card header: filters + search + actions -->
+    <div class="apex-card-header">
+        <div class="filter-tabs">
+            <a href="{{ path('admin_user_index', {filter: 'all', search: search}) }}"
+               class="filter-tab {{ filter == 'all' ? 'active' : '' }}">
+                Tous <span style="color:#94a3b8;font-size:12px;margin-left:4px;">{{ total }}</span>
+            </a>
+            <a href="{{ path('admin_user_index', {filter: 'active', search: search}) }}"
+               class="filter-tab {{ filter == 'active' ? 'active' : '' }}">Actifs</a>
+            <a href="{{ path('admin_user_index', {filter: 'inactive', search: search}) }}"
+               class="filter-tab {{ filter == 'inactive' ? 'active' : '' }}">Inactifs</a>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;">
+            <form method="get" action="{{ path('admin_user_index') }}" style="display:flex;gap:8px;">
+                <input type="hidden" name="filter" value="{{ filter }}">
+                <div class="search-input-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="{{ search }}" placeholder="Rechercher...">
+                </div>
+                <button type="submit" class="btn-apex btn-apex-outline">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if search %}
+                    <a href="{{ path('admin_user_index', {filter: filter}) }}" class="btn-apex btn-apex-outline">
+                        <i class="bi bi-x"></i>
+                    </a>
+                {% endif %}
+            </form>
+            <button class="btn-apex btn-apex-outline" onclick="exportTable()">
+                <i class="bi bi-download"></i> Exporter
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto;">
+        <table class="apex-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Statut</th>
+                    <th>Rôle</th>
+                    <th>2FA</th>
+                    <th>Inscrit le</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                {% set colors = ['av-indigo','av-blue','av-green','av-orange','av-pink','av-teal'] %}
+                {% set colorIdx = (user.email|length) % 6 %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="avatar-initials {{ colors[colorIdx] }}" style="width:36px;height:36px;font-size:13px;">
+                                {{ user.initials }}
+                            </div>
+                            <div>
+                                <div class="user-name">{{ user.displayName }}</div>
+                                <div class="user-email">{{ user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ user.isActive ? 'active' : 'inactive' }}">
+                            <span class="status-dot"></span>
+                            {{ user.isActive ? 'Actif' : 'Inactif' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <span class="role-badge admin">Admin</span>
+                        {% else %}
+                            <span class="role-badge">Utilisateur</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.googleAuthenticatorEnabled %}
+                            <span style="color:#16a34a;font-size:13px;"><i class="bi bi-shield-fill-check"></i> Activé</span>
+                        {% else %}
+                            <span style="color:#94a3b8;font-size:13px;"><i class="bi bi-shield"></i> Non activé</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted);font-size:13px;">
+                        {{ user.createdAt|date('d/m/Y') }}
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:flex;gap:4px;justify-content:flex-end;">
+                            <a href="{{ path('admin_user_edit', {id: user.id}) }}" class="action-btn" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{{ path('admin_user_toggle', {id: user.id}) }}" style="display:inline;">
+                                <button type="submit" class="action-btn"
+                                        title="{{ user.isActive ? 'Désactiver' : 'Activer' }}"
+                                        style="color:{{ user.isActive ? '#d97706' : '#16a34a' }}">
+                                    <i class="bi bi-{{ user.isActive ? 'pause-circle' : 'play-circle' }}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Supprimer cet utilisateur ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                <button type="submit" class="action-btn danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">
+                        <i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+                        Aucun utilisateur trouvé.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pages > 1 %}
+    <div class="apex-pagination">
+        <span class="pagination-info">
+            Affichage {{ ((page-1)*limit)+1 }}–{{ min(page*limit, total) }} sur {{ total }} résultats
+        </span>
+        <div class="pagination-btns">
+            <a href="{{ path('admin_user_index', {page: page-1, filter: filter, search: search}) }}"
+               class="page-btn {{ page <= 1 ? 'disabled' : '' }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            {% for p in 1..pages %}
+                <a href="{{ path('admin_user_index', {page: p, filter: filter, search: search}) }}"
+                   class="page-btn {{ p == page ? 'active' : '' }}">{{ p }}</a>
+            {% endfor %}
+            <a href="{{ path('admin_user_index', {page: page+1, filter: filter, search: search}) }}"
+               class="page-btn {{ page >= pages ? 'disabled' : '' }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="apex-pagination">
+        <span class="pagination-info">{{ total }} résultat{{ total > 1 ? 's' : '' }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function exportTable() {
+    const rows = document.querySelectorAll('.apex-table tbody tr');
+    let csv = 'Nom,Email,Statut,Rôle,2FA,Inscrit le\n';
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 5) return;
+        const name = cells[0].querySelector('.user-name')?.innerText || '';
+        const email = cells[0].querySelector('.user-email')?.innerText || '';
+        const status = cells[1].innerText.trim();
+        const role = cells[2].innerText.trim();
+        const twofa = cells[3].innerText.trim();
+        const date = cells[4].innerText.trim();
+        csv += `"${name}","${email}","${status}","${role}","${twofa}","${date}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'utilisateurs.csv';
+    a.click();
+}
+</script>
+{% endblock %}
