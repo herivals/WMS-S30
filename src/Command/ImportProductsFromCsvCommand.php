@@ -28,7 +28,7 @@ class ImportProductsFromCsvCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('file', InputArgument::OPTIONAL, 'Chemin du CSV', 'article.csv')
+            ->addArgument('file', InputArgument::OPTIONAL, 'Chemin du CSV (absolu, relatif au répertoire courant ou à la racine du projet)', 'article.csv')
             ->addOption('batch-size', null, InputOption::VALUE_REQUIRED, 'Nombre de lignes par palier de flush', (string) self::DEFAULT_BATCH_SIZE);
     }
 
@@ -36,13 +36,20 @@ class ImportProductsFromCsvCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $file = (string) $input->getArgument('file');
-        $path = is_file($file) ? $file : dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . $file;
         $batchSize = max(1, (int) $input->getOption('batch-size'));
 
-        if (!is_file($path)) {
-            $io->error(sprintf('Fichier introuvable: %s', $path));
+        $path = $this->resolveCsvPath($file);
+        if ($path === null) {
+            $io->error(sprintf(
+                "Fichier CSV introuvable : \"%s\".\nChemins essayés :\n  - %s\n  - %s\n  - %s",
+                $file,
+                $file,
+                getcwd() . DIRECTORY_SEPARATOR . $file,
+                dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . $file,
+            ));
             return Command::FAILURE;
         }
+        $io->writeln(sprintf('<info>Fichier :</info> %s', $path));
 
         @ini_set('memory_limit', '-1');
 
@@ -282,6 +289,30 @@ class ImportProductsFromCsvCommand extends Command
             }
         } catch (\Throwable) {
         }
+    }
+
+    /**
+     * Résout le chemin du CSV : absolu, relatif au cwd, ou relatif à la racine du projet.
+     */
+    private function resolveCsvPath(string $file): ?string
+    {
+        if ($file === '') {
+            return null;
+        }
+        $candidates = [];
+        $candidates[] = $file;
+        $cwd = getcwd();
+        if ($cwd !== false) {
+            $candidates[] = $cwd . DIRECTORY_SEPARATOR . $file;
+        }
+        $candidates[] = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . $file;
+
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return realpath($candidate) ?: $candidate;
+            }
+        }
+        return null;
     }
 
     private function countLines(string $path): int

@@ -151,15 +151,15 @@
     <div class="apex-card">
         <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-rulers" style="margin-right:6px;"></i>Dimensions physiques</span></div>
         <div style="padding:20px;">
-            {% for label, value, unit in [
-                ['Poids', charge.poids, 'kg'],
-                ['Largeur', charge.largeur, 'cm'],
-                ['Hauteur', charge.hauteur, 'cm'],
-                ['Profondeur', charge.profondeur, 'cm']
+            {% for dim in [
+                {label: 'Poids',      value: charge.poids,      unit: 'kg'},
+                {label: 'Largeur',    value: charge.largeur,    unit: 'cm'},
+                {label: 'Hauteur',    value: charge.hauteur,    unit: 'cm'},
+                {label: 'Profondeur', value: charge.profondeur, unit: 'cm'}
             ] %}
             <div style="display:flex;justify-content:space-between;padding:8px 0;{{ not loop.last ? 'border-bottom:1px solid var(--border-color);' }}font-size:13px;">
-                <span style="color:var(--text-muted);">{{ label }}</span>
-                <span style="font-weight:500;">{{ value is not null ? value ~ ' ' ~ unit : '—' }}</span>
+                <span style="color:var(--text-muted);">{{ dim.label }}</span>
+                <span style="font-weight:500;">{{ dim.value is not null ? dim.value ~ ' ' ~ dim.unit : '—' }}</span>
             </div>
             {% endfor %}
         </div>

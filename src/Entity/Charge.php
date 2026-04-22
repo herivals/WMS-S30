@@ -208,7 +208,15 @@ class Charge
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $this->dateCreation = new \DateTimeImmutable();
+        if (!isset($this->dateCreation)) {
+            $this->dateCreation = new \DateTimeImmutable();
+        }
+    }
+
+    public function setDateCreation(\DateTimeImmutable $dateCreation): static
+    {
+        $this->dateCreation = $dateCreation;
+        return $this;
     }
 
     // ── Quantité disponible (virtuelle) ──
