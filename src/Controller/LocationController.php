@@ -28,9 +28,27 @@ class LocationController extends AbstractController
         if ($allee) {
             $qb->andWhere('l.allee = :a')->setParameter('a', $allee);
         }
-        $locations = $qb->orderBy('l.code', 'ASC')->getQuery()->getResult();
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
 
-        return $this->render('location/index.html.twig', ['locations' => $locations, 'search' => $search, 'allee' => $allee]);
+        $total = (clone $qb)->select('COUNT(l.id)')->getQuery()->getSingleScalarResult();
+
+        $locations = $qb->orderBy('l.code', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+
+        return $this->render('location/index.html.twig', [
+            'locations' => $locations,
+            'search' => $search,
+            'allee' => $allee,
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
+        ]);
     }
 
     #[Route('/new', name: 'new')]

@@ -6,7 +6,7 @@
 {% block content %}
 {{ mac.flash_messages() }}
 <div class="page-header">
-    <div><h1 class="page-title">Emplacements</h1><p class="page-subtitle">{{ locations|length }} emplacement(s) configuré(s).</p></div>
+    <div><h1 class="page-title">Emplacements</h1><p class="page-subtitle">{{ total }} emplacement(s) configuré(s).</p></div>
     <a href="{{ path('location_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouvel emplacement</a>
 </div>
 
@@ -49,6 +49,6 @@
             </tbody>
         </table>
     </div>
-    <div class="apex-pagination"><span class="pagination-info">{{ locations|length }} résultat(s)</span></div>
+    {{ mac.pagination(page, pages, total, limit, 'location_index', {search: search, allee: allee}) }}
 </div>
 {% endblock %}

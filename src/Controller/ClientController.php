@@ -26,9 +26,26 @@ class ClientController extends AbstractController
                 ->andWhere('c.nomDeposant LIKE :s OR c.deposant LIKE :s OR c.email LIKE :s')
                 ->setParameter('s', '%'.$search.'%');
         }
-        $clients = $qb->orderBy('c.nomDeposant', 'ASC')->getQuery()->getResult();
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
 
-        return $this->render('client/index.html.twig', ['clients' => $clients, 'search' => $search]);
+        $total = (clone $qb)->select('COUNT(c.id)')->getQuery()->getSingleScalarResult();
+
+        $clients = $qb->orderBy('c.nomDeposant', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+
+        return $this->render('client/index.html.twig', [
+            'clients' => $clients,
+            'search' => $search,
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
+        ]);
     }
 
     #[Route('/new', name: 'new')]

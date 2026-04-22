@@ -1,0 +1,38 @@
+{% extends 'admin/layout.html.twig' %}
+{% import '_macros.html.twig' as mac %}
+{% block title %}Paramètres{% endblock %}
+{% block breadcrumb %}Paramètres{% endblock %}
+
+{% block content %}
+{{ mac.flash_messages() }}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Paramètres du compte</h1>
+        <p class="page-subtitle">Personnalisez votre expérience.</p>
+    </div>
+</div>
+
+<div class="apex-card form-card">
+    <div class="apex-card-header">
+        <span style="font-weight:600;font-size:14px;"><i class="bi bi-table" style="margin-right:6px;"></i>Affichage des tableaux</span>
+    </div>
+    <div style="padding:24px;">
+        <form method="post">
+            <div class="apex-form-group">
+                <label class="apex-label" for="items_per_page">Nombre de lignes par page</label>
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px;">
+                    Ce paramètre s'applique à tous les tableaux de l'application.
+                </p>
+                <select name="items_per_page" id="items_per_page" class="apex-input" style="max-width:200px;">
+                    {% for opt in itemsOptions %}
+                        <option value="{{ opt }}" {{ pref.itemsPerPage == opt ? 'selected' }}>{{ opt }} lignes</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-apex btn-apex-primary">
+                <i class="bi bi-check-lg"></i> Enregistrer
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

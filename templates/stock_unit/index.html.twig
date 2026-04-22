@@ -9,7 +9,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Unités logistiques</h1>
-        <p class="page-subtitle">{{ stockUnits|length }} UL référencée(s).</p>
+        <p class="page-subtitle">{{ total }} UL référencée(s).</p>
     </div>
     <a href="{{ path('stock_unit_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouvelle UL</a>
 </div>
@@ -90,6 +90,6 @@
             </tbody>
         </table>
     </div>
-    <div class="apex-pagination"><span class="pagination-info">{{ stockUnits|length }} résultat(s)</span></div>
+    {{ mac.pagination(page, pages, total, limit, 'stock_unit_index', {search: search, statut: statut}) }}
 </div>
 {% endblock %}

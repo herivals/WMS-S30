@@ -17,12 +17,27 @@ class StockMovementController extends AbstractController
     #[Route('', name: 'index')]
     public function index(Request $request, StockMovementRepository $repo): Response
     {
-        $movements = $repo->createQueryBuilder('m')
-            ->orderBy('m.date', 'DESC')
-            ->setMaxResults(100)
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
+
+        $qb = $repo->createQueryBuilder('m');
+
+        $total = (clone $qb)->select('COUNT(m.id)')->getQuery()->getSingleScalarResult();
+
+        $movements = $qb->orderBy('m.date', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
             ->getQuery()->getResult();
 
-        return $this->render('stock_movement/index.html.twig', ['movements' => $movements]);
+        return $this->render('stock_movement/index.html.twig', [
+            'movements' => $movements,
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
+        ]);
     }
 
     #[Route('/{id}', name: 'show')]

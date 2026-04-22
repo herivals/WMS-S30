@@ -24,9 +24,26 @@ class ReceptionController extends AbstractController
         if ($search) {
             $qb->andWhere('r.reference LIKE :s')->setParameter('s', '%'.$search.'%');
         }
-        $receptions = $qb->orderBy('r.date', 'DESC')->getQuery()->getResult();
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
 
-        return $this->render('reception/index.html.twig', ['receptions' => $receptions, 'search' => $search]);
+        $total = (clone $qb)->select('COUNT(r.id)')->getQuery()->getSingleScalarResult();
+
+        $receptions = $qb->orderBy('r.date', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+
+        return $this->render('reception/index.html.twig', [
+            'receptions' => $receptions,
+            'search' => $search,
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
+        ]);
     }
 
     #[Route('/new', name: 'new')]

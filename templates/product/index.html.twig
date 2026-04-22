@@ -8,7 +8,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Produits</h1>
-        <p class="page-subtitle">{{ products|length }} produit(s) référencé(s).</p>
+        <p class="page-subtitle">{{ total }} produit(s) référencé(s).</p>
     </div>
     <a href="{{ path('product_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouveau produit</a>
 </div>
@@ -50,6 +50,6 @@
             </tbody>
         </table>
     </div>
-    <div class="apex-pagination"><span class="pagination-info">{{ products|length }} résultat(s)</span></div>
+    {{ mac.pagination(page, pages, total, limit, 'product_index', {search: search}) }}
 </div>
 {% endblock %}

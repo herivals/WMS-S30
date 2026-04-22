@@ -5,7 +5,7 @@
 {% block content %}
 {{ mac.flash_messages() }}
 <div class="page-header">
-    <div><h1 class="page-title">Clients</h1><p class="page-subtitle">{{ clients|length }} deposant(s).</p></div>
+    <div><h1 class="page-title">Clients</h1><p class="page-subtitle">{{ total }} deposant(s).</p></div>
     <a href="{{ path('client_new') }}" class="btn-apex btn-apex-primary"><i class="bi bi-plus-lg"></i> Nouveau client</a>
 </div>
 <div class="apex-card">
@@ -43,6 +43,6 @@
             </tbody>
         </table>
     </div>
-    <div class="apex-pagination"><span class="pagination-info">{{ clients|length }} résultat(s)</span></div>
+    {{ mac.pagination(page, pages, total, limit, 'client_index', {search: search}) }}
 </div>
 {% endblock %}

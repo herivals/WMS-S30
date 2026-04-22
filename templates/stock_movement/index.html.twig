@@ -7,7 +7,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Mouvements de stock</h1>
-        <p class="page-subtitle">{{ movements|length }} mouvement(s) récent(s).</p>
+        <p class="page-subtitle">{{ total }} mouvement(s) enregistré(s).</p>
     </div>
     <a href="{{ path('stock_dashboard') }}" class="btn-apex btn-apex-outline"><i class="bi bi-bar-chart-line"></i> Tableau de bord</a>
 </div>
@@ -49,6 +49,6 @@
             </tbody>
         </table>
     </div>
-    <div class="apex-pagination"><span class="pagination-info">{{ movements|length }} résultat(s)</span></div>
+    {{ mac.pagination(page, pages, total, limit, 'stock_movement_index', {}) }}
 </div>
 {% endblock %}

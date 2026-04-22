@@ -38,6 +38,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\Column(nullable: true)]
     private ?string $googleAuthenticatorSecret = null;
 
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?UserPreference $preference = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -87,6 +90,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
+
+    public function getPreference(): ?UserPreference { return $this->preference; }
+    public function setPreference(?UserPreference $preference): static
+    {
+        if ($preference !== null && $preference->getUser() !== $this) {
+            $preference->setUser($this);
+        }
+        $this->preference = $preference;
+        return $this;
+    }
+
+    public function getItemsPerPage(): int { return $this->preference?->getItemsPerPage() ?? 25; }
 
     public function eraseCredentials(): void {}
 

@@ -41,6 +41,46 @@
 </span>
 {% endmacro %}
 
+{% macro pagination(page, pages, total, limit, route, params) %}
+<div class="apex-pagination">
+    <span class="pagination-info">
+        {% if total == 0 %}
+            Aucun résultat
+        {% elseif pages <= 1 %}
+            {{ total }} résultat{{ total > 1 ? 's' : '' }}
+        {% else %}
+            Affichage {{ ((page - 1) * limit) + 1 }}–{{ min(page * limit, total) }} sur {{ total }} résultat{{ total > 1 ? 's' : '' }}
+        {% endif %}
+    </span>
+    {% if pages > 1 %}
+    <div class="pagination-btns">
+        <a href="{{ path(route, params|merge({page: page - 1})) }}"
+           class="page-btn {{ page <= 1 ? 'disabled' : '' }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% set start = max(1, page - 2) %}
+        {% set end   = min(pages, page + 2) %}
+        {% if start > 1 %}
+            <a href="{{ path(route, params|merge({page: 1})) }}" class="page-btn">1</a>
+            {% if start > 2 %}<span class="page-btn" style="pointer-events:none;border:none;">…</span>{% endif %}
+        {% endif %}
+        {% for p in start..end %}
+            <a href="{{ path(route, params|merge({page: p})) }}"
+               class="page-btn {{ p == page ? 'active' : '' }}">{{ p }}</a>
+        {% endfor %}
+        {% if end < pages %}
+            {% if end < pages - 1 %}<span class="page-btn" style="pointer-events:none;border:none;">…</span>{% endif %}
+            <a href="{{ path(route, params|merge({page: pages})) }}" class="page-btn">{{ pages }}</a>
+        {% endif %}
+        <a href="{{ path(route, params|merge({page: page + 1})) }}"
+           class="page-btn {{ page >= pages ? 'disabled' : '' }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
 {% macro bool_badge(value, trueLabel, falseLabel) %}
 {% if value %}
     <span style="color:#16a34a;font-size:13px;"><i class="bi bi-check-circle-fill"></i> {{ trueLabel ?? 'Oui' }}</span>

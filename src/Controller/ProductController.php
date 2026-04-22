@@ -26,9 +26,26 @@ class ProductController extends AbstractController
                 ->andWhere('p.reference LIKE :s OR p.designation LIKE :s OR p.famille LIKE :s OR p.deposant LIKE :s')
                 ->setParameter('s', '%'.$search.'%');
         }
-        $products = $qb->orderBy('p.reference', 'ASC')->getQuery()->getResult();
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
 
-        return $this->render('product/index.html.twig', ['products' => $products, 'search' => $search]);
+        $total = (clone $qb)->select('COUNT(p.id)')->getQuery()->getSingleScalarResult();
+
+        $products = $qb->orderBy('p.reference', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+
+        return $this->render('product/index.html.twig', [
+            'products' => $products,
+            'search' => $search,
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
+        ]);
     }
 
     #[Route('/new', name: 'new')]

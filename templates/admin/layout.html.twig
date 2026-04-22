@@ -516,7 +516,7 @@
             <i class="bi bi-bar-chart-line"></i> Tableau de bord stock
         </a>
         <a href="{{ path('stock_unit_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'stock_unit' %}active{% endif %}">
-            <i class="bi bi-box-seam"></i> Unités logistiques
+            <i class="bi bi-box-seam"></i>Charges
         </a>
         <a href="{{ path('product_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'product' %}active{% endif %}">
             <i class="bi bi-upc-scan"></i> Produits
@@ -538,13 +538,16 @@
         <a href="{{ path('admin_user_index') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'admin_user' %}active{% endif %}">
             <i class="bi bi-people"></i> Utilisateurs
         </a>
-        <a href="#" class="sidebar-link">
+        <a href="{{ path('profile_settings') }}" class="sidebar-link {% if app.request.attributes.get('_route') starts with 'profile_' %}active{% endif %}">
             <i class="bi bi-gear"></i> Paramètres
         </a>
 
         <div class="nav-section-label">Compte</div>
         <a href="{{ path('app_2fa_enable') }}" class="sidebar-link">
             <i class="bi bi-phone"></i> Authentification 2FA
+        </a>
+        <a href="{{ path('app_db_export') }}" class="sidebar-link">
+            <i class="bi bi-database"></i> Base de données
         </a>
         <a href="{{ path('app_logout') }}" class="sidebar-link">
             <i class="bi bi-box-arrow-right"></i> Déconnexion
@@ -577,6 +580,9 @@
             </nav>
         </div>
         <div class="topbar-right">
+            <a href="{{ path('profile_settings') }}" class="topbar-btn" title="Paramètres ({{ app.user.itemsPerPage }} lignes/page)">
+                <i class="bi bi-sliders"></i>
+            </a>
             <a href="{{ path('app_2fa_enable') }}" class="topbar-btn" title="2FA">
                 <i class="bi bi-shield-check"></i>
             </a>

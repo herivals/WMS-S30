@@ -37,13 +37,27 @@ class StockUnitController extends AbstractController
             $qb->andWhere('c.statut = :statut')->setParameter('statut', StatutUL::from($statut));
         }
 
-        $stockUnits = $qb->orderBy('c.dateCreation', 'DESC')->getQuery()->getResult();
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $limit = $user->getItemsPerPage();
+        $page = max(1, $request->query->getInt('page', 1));
+
+        $total = (clone $qb)->select('COUNT(c.id)')->getQuery()->getSingleScalarResult();
+
+        $stockUnits = $qb->orderBy('c.dateCreation', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
 
         return $this->render('stock_unit/index.html.twig', [
             'stockUnits' => $stockUnits,
             'search' => $search,
             'statut' => $statut,
             'statuts' => StatutUL::cases(),
+            'page' => $page,
+            'total' => $total,
+            'limit' => $limit,
+            'pages' => (int) ceil($total / max(1, $limit)),
         ]);
     }
 

@@ -23,7 +23,9 @@ class UserController extends AbstractController
         $filter = $request->query->get('filter', 'all');
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 10;
+        /** @var \App\Entity\User $currentUser */
+        $currentUser = $this->getUser();
+        $limit = $currentUser->getItemsPerPage();
 
         $qb = $repo->createQueryBuilder('u');
 
