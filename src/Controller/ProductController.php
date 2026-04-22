@@ -22,7 +22,9 @@ class ProductController extends AbstractController
         $search = $request->query->get('search', '');
         $qb = $repo->createQueryBuilder('p');
         if ($search) {
-            $qb->andWhere('p.reference LIKE :s OR p.designation LIKE :s')->setParameter('s', '%'.$search.'%');
+            $qb
+                ->andWhere('p.reference LIKE :s OR p.designation LIKE :s OR p.famille LIKE :s OR p.deposant LIKE :s')
+                ->setParameter('s', '%'.$search.'%');
         }
         $products = $qb->orderBy('p.reference', 'ASC')->getQuery()->getResult();
 

@@ -1,17 +1,31 @@
 {{ form_start(form) }}
 <div class="apex-card" style="margin-bottom:16px;">
-    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-building" style="margin-right:6px;"></i>Informations client</span></div>
+    <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-building" style="margin-right:6px;"></i>Informations deposant</span></div>
     <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="apex-form-group" style="grid-column:1/-1;">
-            {{ form_label(form.nom, null, {label_attr: {class: 'apex-label'}}) }}
-            {{ form_widget(form.nom, {attr: {class: 'apex-input'}}) }}{{ form_errors(form.nom) }}
-        </div>
-        {% for field in ['code', 'email'] %}
+        {% for field in ['deposant', 'nomDeposant', 'email', 'contactSoc', 'telSoc', 'faxSoc', 'responsableCompte', 'batRetour', 'quartierRetour', 'adresse1Soc', 'adresse2Soc', 'cpSoc', 'villeSoc', 'paysSoc', 'codePaysSoc', 'nbJoursTravaillesSur3Mois'] %}
         <div class="apex-form-group">
             {{ form_label(form[field], null, {label_attr: {class: 'apex-label'}}) }}
             {{ form_widget(form[field], {attr: {class: 'apex-input'}}) }}{{ form_errors(form[field]) }}
         </div>
         {% endfor %}
+        <div class="apex-form-group" style="grid-column:1/-1;">
+            {{ form_label(form.commentaireSoc, null, {label_attr: {class: 'apex-label'}}) }}
+            {{ form_widget(form.commentaireSoc, {attr: {class: 'apex-input'}}) }}{{ form_errors(form.commentaireSoc) }}
+        </div>
+        <div class="apex-form-group">
+            <div style="display:flex;align-items:center;gap:8px;">
+                {{ form_widget(form.releveNumeroParc) }}
+                {{ form_label(form.releveNumeroParc, null, {label_attr: {class: 'apex-label', style: 'margin:0;'}}) }}
+            </div>
+            {{ form_errors(form.releveNumeroParc) }}
+        </div>
+        <div class="apex-form-group">
+            <div style="display:flex;align-items:center;gap:8px;">
+                {{ form_widget(form.releveNumeroSerie) }}
+                {{ form_label(form.releveNumeroSerie, null, {label_attr: {class: 'apex-label', style: 'margin:0;'}}) }}
+            </div>
+            {{ form_errors(form.releveNumeroSerie) }}
+        </div>
     </div>
 </div>
 <div style="display:flex;gap:12px;">

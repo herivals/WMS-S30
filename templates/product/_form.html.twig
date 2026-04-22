@@ -2,17 +2,18 @@
 <div class="apex-card" style="margin-bottom:16px;">
     <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-upc-scan" style="margin-right:6px;"></i>Informations produit</span></div>
     <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="apex-form-group" style="grid-column:1/-1;">
-            {{ form_label(form.designation, null, {label_attr: {class: 'apex-label'}}) }}
-            {{ form_widget(form.designation, {attr: {class: 'apex-input'}}) }}
-            {{ form_errors(form.designation) }}
-        </div>
-        {% for field in ['reference', 'ean13', 'gtin'] %}
-        <div class="apex-form-group">
-            {{ form_label(form[field], null, {label_attr: {class: 'apex-label'}}) }}
-            {{ form_widget(form[field], {attr: {class: 'apex-input'}}) }}
-            {{ form_errors(form[field]) }}
-        </div>
+        {% for field in form %}
+            {% if field.vars.name != '_token' %}
+                <div class="apex-form-group{% if field.vars.name in ['designation', 'desigLongue'] %}" style="grid-column:1/-1;"{% else %}"{% endif %}>
+                    {{ form_label(field, null, {label_attr: {class: 'apex-label'}}) }}
+                    {% if field.vars.block_prefixes is defined and 'checkbox' in field.vars.block_prefixes %}
+                        <div style="display:flex;align-items:center;gap:8px;">{{ form_widget(field) }}</div>
+                    {% else %}
+                        {{ form_widget(field, {attr: {class: 'apex-input'}}) }}
+                    {% endif %}
+                    {{ form_errors(field) }}
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 </div>

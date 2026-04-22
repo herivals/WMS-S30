@@ -16,7 +16,25 @@
     <div class="apex-card">
         <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-upc-scan" style="margin-right:6px;"></i>Identification</span></div>
         <div style="padding:20px;">
-            {% for label, value in {'Référence': product.reference, 'Désignation': product.designation, 'EAN13': product.ean13 ?? '—', 'GTIN': product.gtin ?? '—'} %}
+            {% for label, value in {
+                'Référence': product.reference,
+                'Désignation': product.designation,
+                'Ref client': product.refClient ?? '—',
+                'Famille': product.famille ?? '—',
+                'Déposant': product.deposant ?? '—',
+                'EAN13': product.ean13 ?? '—',
+                'GTIN': product.gtin ?? '—',
+                'Etat': product.etat ?? '—',
+                'Statut': product.statut ?? '—',
+                'Fournisseur': product.fournisseur ?? '—',
+                'Qté dispo good': product.qteDispoGood ?? '—',
+                'Qté dispo bad': product.qteDispoBad ?? '—',
+                'Qté stockée 001': product.qteStockee001 ?? '—',
+                'Qté réservée 001': product.qteReservee001 ?? '—',
+                'Prix unit HT': product.prixUnitHt ?? '—',
+                'Type édition': product.typeEdition ?? '—',
+                'Unité de mesure': product.uniteDeMesure ?? '—'
+            } %}
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
                 <span style="color:var(--text-muted);">{{ label }}</span>
                 <span style="font-weight:500;">{{ value }}</span>

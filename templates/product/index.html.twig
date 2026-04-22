@@ -24,14 +24,16 @@
     <div style="overflow-x:auto;">
         <table class="apex-table">
             <thead><tr>
-                <th>Référence</th><th>Désignation</th><th>EAN13</th><th>UL liées</th><th style="text-align:right;">Actions</th>
+                <th>Référence</th><th>Désignation</th><th>Famille</th><th>Déposant</th><th>Statut</th><th>UL liées</th><th style="text-align:right;">Actions</th>
             </tr></thead>
             <tbody>
             {% for product in products %}
             <tr>
                 <td><span style="font-weight:600;font-family:monospace;">{{ product.reference }}</span></td>
                 <td>{{ product.designation }}</td>
-                <td style="color:var(--text-muted);font-size:12px;">{{ product.ean13 ?? '—' }}</td>
+                <td style="color:var(--text-muted);font-size:12px;">{{ product.famille ?? '—' }}</td>
+                <td style="color:var(--text-muted);font-size:12px;">{{ product.deposant ?? '—' }}</td>
+                <td style="color:var(--text-muted);font-size:12px;">{{ product.statut ?? '—' }}</td>
                 <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">{{ product.charges|length }}</span></td>
                 <td style="text-align:right;">
                     <div style="display:flex;gap:4px;justify-content:flex-end;">
@@ -43,7 +45,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-upc-scan" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucun produit trouvé.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted);"><i class="bi bi-upc-scan" style="font-size:32px;display:block;margin-bottom:8px;"></i>Aucun produit trouvé.</td></tr>
             {% endfor %}
             </tbody>
         </table>

@@ -1,10 +1,10 @@
 {% extends 'admin/layout.html.twig' %}
 {% import '_macros.html.twig' as mac %}
-{% block title %}{{ client.nom }}{% endblock %}
-{% block breadcrumb %}<a href="{{ path('client_index') }}" style="color:var(--text-muted);text-decoration:none;">Clients</a> / {{ client.nom }}{% endblock %}
+{% block title %}{{ client.nomDeposant }}{% endblock %}
+{% block breadcrumb %}<a href="{{ path('client_index') }}" style="color:var(--text-muted);text-decoration:none;">Clients</a> / {{ client.nomDeposant }}{% endblock %}
 {% block content %}
 <div class="page-header">
-    <div><h1 class="page-title">{{ client.nom }}</h1><p class="page-subtitle">Code : {{ client.code ?? '—' }}</p></div>
+    <div><h1 class="page-title">{{ client.nomDeposant }}</h1><p class="page-subtitle">Deposant : {{ client.deposant }}</p></div>
     <div style="display:flex;gap:8px;">
         <a href="{{ path('client_edit', {id: client.id}) }}" class="btn-apex btn-apex-outline"><i class="bi bi-pencil"></i> Modifier</a>
         <a href="{{ path('client_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-arrow-left"></i> Retour</a>
@@ -14,7 +14,27 @@
     <div class="apex-card">
         <div class="apex-card-header"><span style="font-weight:600;font-size:14px;"><i class="bi bi-building" style="margin-right:6px;"></i>Informations</span></div>
         <div style="padding:20px;">
-            {% for label, value in {'Nom': client.nom, 'Code': client.code ?? '—', 'Email': client.email ?? '—'} %}
+            {% for label, value in {
+                'Email': client.email ?? '—',
+                'Deposant': client.deposant,
+                'Nom deposant': client.nomDeposant,
+                'Bat retour': client.batRetour ?? '—',
+                'Ville soc': client.villeSoc ?? '—',
+                'Tel soc': client.telSoc ?? '—',
+                'Adresse2 soc': client.adresse2Soc ?? '—',
+                'Pays soc': client.paysSoc ?? '—',
+                'Commentaire soc': client.commentaireSoc ?? '—',
+                'Releve numero parc': client.releveNumeroParc ? 'Oui' : 'Non',
+                'Contact soc': client.contactSoc ?? '—',
+                'Releve numero serie': client.releveNumeroSerie ? 'Oui' : 'Non',
+                'Code pays soc': client.codePaysSoc ?? '—',
+                'Adresse1 soc': client.adresse1Soc ?? '—',
+                'CP soc': client.cpSoc ?? '—',
+                'Fax soc': client.faxSoc ?? '—',
+                'Quartier retour': client.quartierRetour ?? '—',
+                'Responsable compte': client.responsableCompte ?? '—',
+                'Nb jours travailles sur 3 mois': client.nbJoursTravaillesSur3Mois ?? '—'
+            } %}
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px;">
                 <span style="color:var(--text-muted);">{{ label }}</span><span style="font-weight:500;">{{ value }}</span>
             </div>

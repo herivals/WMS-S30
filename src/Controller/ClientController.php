@@ -22,9 +22,11 @@ class ClientController extends AbstractController
         $search = $request->query->get('search', '');
         $qb = $repo->createQueryBuilder('c');
         if ($search) {
-            $qb->andWhere('c.nom LIKE :s OR c.code LIKE :s')->setParameter('s', '%'.$search.'%');
+            $qb
+                ->andWhere('c.nomDeposant LIKE :s OR c.deposant LIKE :s OR c.email LIKE :s')
+                ->setParameter('s', '%'.$search.'%');
         }
-        $clients = $qb->orderBy('c.nom', 'ASC')->getQuery()->getResult();
+        $clients = $qb->orderBy('c.nomDeposant', 'ASC')->getQuery()->getResult();
 
         return $this->render('client/index.html.twig', ['clients' => $clients, 'search' => $search]);
     }

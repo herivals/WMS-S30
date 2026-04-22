@@ -6,7 +6,7 @@
       "Host": "database",
       "Port": 5432,
       "MaintenanceDB": "wms",
-      "Username": "app",
+      "Username": "postgres",
       "SSLMode": "prefer",
       "PassFile": "/pgpass"
     }
