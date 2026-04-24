@@ -8,6 +8,11 @@ services:
       APP_ENV: ${APP_ENV:-dev}
       APP_SECRET: ${APP_SECRET:-change_me_in_production_32chars!!}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password30}@database:5432/${POSTGRES_DB:-wms}?serverVersion=16&charset=utf8
+      DB_HOST: database
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-wms}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-Password30}
       MAILER_DSN: smtp://mailer:1025
       MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
       DEFAULT_URI: ${DEFAULT_URI:-http://localhost:8080}

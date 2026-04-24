@@ -29,8 +29,10 @@ class DbController extends AbstractController
             throw new \RuntimeException(sprintf('Impossible de créer le dossier "%s".', $backupDir));
         }
 
-        foreach (glob($backupDir . '/*.{dump,sql,sql.gz}', \GLOB_BRACE) ?: [] as $oldFile) {
-            @unlink($oldFile);
+        foreach (['*.dump', '*.sql', '*.sql.gz'] as $pattern) {
+            foreach (glob($backupDir . '/' . $pattern) ?: [] as $oldFile) {
+                @unlink($oldFile);
+            }
         }
 
         $host      = $_ENV['DB_HOST']            ?? '127.0.0.1';
