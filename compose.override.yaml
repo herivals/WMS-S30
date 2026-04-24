@@ -1,5 +1,13 @@
 
 services:
+  app:
+    volumes:
+      - .:/var/www/html:cached
+
+  nginx:
+    ports:
+      - "8080:80"
+
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
