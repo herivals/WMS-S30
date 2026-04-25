@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree -L 2 \"//wsl.localhost/Ubuntu-24.04/home/administrateur/WMS-S30\" -I 'vendor|var|node_modules')",
+      "Bash(php bin/console debug:router)",
+      "Bash(cd \"\\\\\\\\wsl.localhost\\\\Ubuntu-24.04\\\\home\\\\administrateur\\\\WMS-S30\")",
+      "Bash(wsl *)",
+      "Bash(ls *)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/administrateur/WMS-S30/**)"
+    ]
+  }
+}

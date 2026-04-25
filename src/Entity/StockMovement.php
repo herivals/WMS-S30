@@ -38,6 +38,10 @@ class StockMovement
     #[Groups(['stock_unit:read'])]
     private ?int $userId = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['stock_unit:read'])]
+    private ?string $userName = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['stock_unit:read'])]
     private ?string $commentaire = null;
@@ -68,6 +72,9 @@ class StockMovement
 
     public function getUserId(): ?int { return $this->userId; }
     public function setUserId(?int $userId): static { $this->userId = $userId; return $this; }
+
+    public function getUserName(): ?string { return $this->userName; }
+    public function setUserName(?string $userName): static { $this->userName = $userName; return $this; }
 
     public function getCommentaire(): ?string { return $this->commentaire; }
     public function setCommentaire(?string $commentaire): static { $this->commentaire = $commentaire; return $this; }

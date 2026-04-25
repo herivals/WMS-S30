@@ -130,3 +130,63 @@
 </div>
 
 {{ form_end(form) }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ownerSelect = document.getElementById('stock_unit_owner');
+    const emplacementSelect = document.getElementById('stock_unit_emplacement');
+    const productSelect = document.getElementById('stock_unit_product');
+
+    if (!ownerSelect || !emplacementSelect || !productSelect) return;
+
+    function reloadProducts() {
+        const clientId = ownerSelect.value;
+        const emplacementId = emplacementSelect.value;
+
+        if (!clientId && !emplacementId) return;
+
+        const params = new URLSearchParams();
+        if (clientId) params.set('clientId', clientId);
+        if (emplacementId) params.set('emplacementId', emplacementId);
+
+        const currentProductId = productSelect.value;
+
+        fetch('{{ path('stock_unit_api_products') }}?' + params.toString())
+            .then(function (res) { return res.json(); })
+            .then(function (products) {
+                productSelect.innerHTML = '';
+
+                var found = false;
+                products.forEach(function (p) {
+                    var option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.text;
+                    if (String(p.id) === String(currentProductId)) {
+                        option.selected = true;
+                        found = true;
+                    }
+                    productSelect.appendChild(option);
+                });
+
+                // Si le produit actuel n'est pas dans la liste filtrée, on l'ajoute en premier
+                if (!found && currentProductId) {
+                    var existingOption = document.createElement('option');
+                    existingOption.value = currentProductId;
+                    existingOption.textContent = productSelect.dataset.currentText || '— Produit actuel —';
+                    existingOption.selected = true;
+                    existingOption.style.fontStyle = 'italic';
+                    productSelect.insertBefore(existingOption, productSelect.firstChild);
+                }
+            });
+    }
+
+    // Stocker le texte du produit actuellement sélectionné pour le cas où il ne figure pas dans le filtre
+    var selectedOption = productSelect.options[productSelect.selectedIndex];
+    if (selectedOption) {
+        productSelect.dataset.currentText = selectedOption.textContent;
+    }
+
+    ownerSelect.addEventListener('change', reloadProducts);
+    emplacementSelect.addEventListener('change', reloadProducts);
+});
+</script>

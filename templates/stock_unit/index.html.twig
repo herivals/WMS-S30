@@ -15,7 +15,7 @@
 </div>
 
 <div class="apex-card">
-    <div class="apex-card-header">
+    <div class="apex-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <div class="search-input-wrapper"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search }}" placeholder="Code charge, produit..."></div>
             <select name="statut" class="apex-input" style="width:auto;padding:6px 10px;font-size:13px;">
@@ -27,10 +27,17 @@
             <button type="submit" class="btn-apex btn-apex-outline"><i class="bi bi-search"></i></button>
             {% if search or statut %}<a href="{{ path('stock_unit_index') }}" class="btn-apex btn-apex-outline"><i class="bi bi-x"></i></a>{% endif %}
         </form>
+        <div id="selection-bar" style="display:none;align-items:center;gap:10px;padding:6px 14px;background:var(--accent,#3b82f6);color:#fff;border-radius:6px;font-size:13px;">
+            <i class="bi bi-check2-square"></i>
+            <span id="selection-count">0</span> sélectionnée(s)
+            <button onclick="openMoveModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:12px;"><i class="bi bi-arrows-move"></i> Déplacer</button>
+            <button onclick="clearSelection()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px;line-height:1;"><i class="bi bi-x-lg"></i></button>
+        </div>
     </div>
     <div style="overflow-x:auto;">
-        <table class="apex-table">
+        <table class="apex-table" id="charges-table" style="user-select:none;">
             <thead><tr>
+                <th style="width:28px;"></th>
                 <th>Code charge</th>
                 <th>Produit</th>
                 <th>Type UL</th>
@@ -40,11 +47,12 @@
                 <th>Créée le</th>
                 <th style="text-align:right;">Actions</th>
             </tr></thead>
-            <tbody>
+            <tbody id="charges-tbody">
             {% set typeColors = {'PAL': '#ede9fe', 'COLIS': '#dbeafe', 'UNITE': '#dcfce7'} %}
             {% set typeText   = {'PAL': '#7c3aed', 'COLIS': '#2563eb', 'UNITE': '#16a34a'} %}
             {% for stockUnit in stockUnits %}
-            <tr>
+            <tr data-id="{{ stockUnit.id }}" class="charge-row">
+                <td class="sel-cell" style="padding:0 6px;text-align:center;"><span class="sel-dot"></span></td>
                 <td style="font-weight:600;font-family:monospace;font-size:13px;">{{ stockUnit.codeCharge }}</td>
                 <td>
                     <a href="{{ path('product_show', {id: stockUnit.product.id}) }}" style="color:var(--text-primary);text-decoration:none;">
@@ -82,7 +90,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted);">
+            <tr><td colspan="9" style="text-align:center;padding:48px;color:var(--text-muted);">
                 <i class="bi bi-box-seam" style="font-size:32px;display:block;margin-bottom:8px;"></i>
                 Aucune unité logistique trouvée.
             </td></tr>
@@ -92,4 +100,189 @@
     </div>
     {{ mac.pagination(page, pages, total, limit, 'stock_unit_index', {search: search, statut: statut}) }}
 </div>
+
+{# ── Menu contextuel ──────────────────────────────────────────────────────── #}
+<div id="ctx-menu" style="display:none;position:fixed;z-index:9999;background:#fff;border:1px solid var(--border-color,#e2e8f0);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:190px;overflow:hidden;">
+    <div class="ctx-item" id="ctx-move"><i class="bi bi-arrows-move"></i> Déplacer vers...</div>
+    <div style="height:1px;background:var(--border-color,#e2e8f0);"></div>
+    <div class="ctx-item ctx-item-muted" id="ctx-clear"><i class="bi bi-x-circle"></i> Désélectionner tout</div>
+</div>
+
+{# ── Modal déplacement ────────────────────────────────────────────────────── #}
+<div id="move-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:10px;padding:28px 32px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+        <h3 style="margin:0 0 6px;font-size:15px;font-weight:600;"><i class="bi bi-arrows-move" style="margin-right:6px;"></i>Déplacer les charges</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin:0 0 18px;"><span id="modal-count">0</span> charge(s) sélectionnée(s)</p>
+        <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Nouvel emplacement</label>
+        <select id="move-location-select" class="apex-input" style="width:100%;margin-bottom:20px;">
+            <option value="">— Choisir un emplacement —</option>
+            {% for loc in locations %}
+                <option value="{{ loc.id }}">{{ loc.code }}</option>
+            {% endfor %}
+        </select>
+        <p id="move-error" style="color:#dc2626;font-size:12px;margin:0 0 12px;display:none;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeMoveModal()" class="btn-apex btn-apex-outline">Annuler</button>
+            <button onclick="confirmMove()" class="btn-apex btn-apex-primary"><i class="bi bi-check-lg"></i> Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.charge-row { cursor: pointer; transition: background .1s; }
+.charge-row:hover { background: var(--hover-bg, #f8fafc); }
+.charge-row.selected { background: #eff6ff !important; outline: 1px solid #93c5fd; outline-offset: -1px; }
+.sel-dot { display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #cbd5e1;transition:.15s; }
+.charge-row.selected .sel-dot { background:var(--accent,#3b82f6);border-color:var(--accent,#3b82f6); }
+.ctx-item { padding:9px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px; }
+.ctx-item:hover { background:#f1f5f9; }
+.ctx-item-muted { color:var(--text-muted,#64748b); }
+</style>
+
+<script>
+(function () {
+    const rows       = Array.from(document.querySelectorAll('.charge-row'));
+    const bar        = document.getElementById('selection-bar');
+    const countEl    = document.getElementById('selection-count');
+    const ctxMenu    = document.getElementById('ctx-menu');
+    const moveModal  = document.getElementById('move-modal');
+    const modalCount = document.getElementById('modal-count');
+    const bulkMoveUrl = '{{ path('stock_unit_bulk_move') }}';
+
+    let selected   = new Set();
+    let lastIndex  = -1;
+    let isDragging = false;
+    let dragStart  = -1;
+
+    /* ── helpers sélection ──────────────────────────────────────── */
+    function selectRow(row) {
+        selected.add(row.dataset.id);
+        row.classList.add('selected');
+    }
+    function deselectRow(row) {
+        selected.delete(row.dataset.id);
+        row.classList.remove('selected');
+    }
+    function toggleRow(row) {
+        selected.has(row.dataset.id) ? deselectRow(row) : selectRow(row);
+    }
+    function selectRange(from, to) {
+        const lo = Math.min(from, to), hi = Math.max(from, to);
+        for (let i = lo; i <= hi; i++) selectRow(rows[i]);
+    }
+    window.clearSelection = function () {
+        selected.clear();
+        rows.forEach(r => r.classList.remove('selected'));
+        updateBar();
+        hideCtxMenu();
+    };
+    function updateBar() {
+        countEl.textContent = selected.size;
+        bar.style.display   = selected.size > 0 ? 'flex' : 'none';
+    }
+
+    /* ── événements souris sur les lignes ───────────────────────── */
+    rows.forEach((row, idx) => {
+        row.addEventListener('mousedown', e => {
+            if (e.target.closest('a, button')) return;
+            if (e.button !== 0) return;
+            e.preventDefault();
+
+            if (e.ctrlKey || e.metaKey) {
+                toggleRow(row);
+                lastIndex = idx;
+            } else if (e.shiftKey && lastIndex >= 0) {
+                selectRange(lastIndex, idx);
+            } else {
+                clearSelection();
+                selectRow(row);
+                lastIndex  = idx;
+                isDragging = true;
+                dragStart  = idx;
+            }
+            updateBar();
+        });
+
+        row.addEventListener('mouseover', () => {
+            if (!isDragging) return;
+            rows.forEach(r => r.classList.remove('selected'));
+            selected.clear();
+            selectRange(dragStart, idx);
+            updateBar();
+        });
+    });
+
+    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    /* ── menu contextuel ────────────────────────────────────────── */
+    document.getElementById('charges-tbody').addEventListener('contextmenu', e => {
+        const row = e.target.closest('.charge-row');
+        if (!row) return;
+        e.preventDefault();
+
+        if (!selected.has(row.dataset.id)) {
+            clearSelection();
+            selectRow(row);
+            lastIndex = rows.indexOf(row);
+            updateBar();
+        }
+
+        ctxMenu.style.left    = Math.min(e.clientX, window.innerWidth  - 210) + 'px';
+        ctxMenu.style.top     = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+        ctxMenu.style.display = 'block';
+    });
+
+    function hideCtxMenu() { ctxMenu.style.display = 'none'; }
+    document.getElementById('ctx-move').addEventListener('click', () => { hideCtxMenu(); openMoveModal(); });
+    document.getElementById('ctx-clear').addEventListener('click', () => clearSelection());
+    document.addEventListener('click', e => { if (!ctxMenu.contains(e.target)) hideCtxMenu(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { hideCtxMenu(); closeMoveModal(); }
+    });
+
+    /* ── modal déplacement ──────────────────────────────────────── */
+    window.openMoveModal = function () {
+        if (selected.size === 0) return;
+        modalCount.textContent = selected.size;
+        document.getElementById('move-location-select').value = '';
+        document.getElementById('move-error').style.display   = 'none';
+        moveModal.style.display = 'flex';
+    };
+    window.closeMoveModal = function () { moveModal.style.display = 'none'; };
+
+    // Fermer le modal en cliquant sur l'overlay
+    moveModal.addEventListener('click', e => { if (e.target === moveModal) closeMoveModal(); });
+
+    window.confirmMove = function () {
+        const emplacementId = document.getElementById('move-location-select').value;
+        const errEl = document.getElementById('move-error');
+        if (!emplacementId) {
+            errEl.textContent    = 'Veuillez choisir un emplacement.';
+            errEl.style.display  = 'block';
+            return;
+        }
+
+        const body = new FormData();
+        body.append('chargeIds', JSON.stringify(Array.from(selected)));
+        body.append('emplacementId', emplacementId);
+
+        fetch(bulkMoveUrl, { method: 'POST', body })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeMoveModal();
+                    clearSelection();
+                    location.reload();
+                } else {
+                    errEl.textContent   = data.error ?? 'Erreur inconnue.';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(() => {
+                errEl.textContent   = 'Erreur réseau.';
+                errEl.style.display = 'block';
+            });
+    };
+})();
+</script>
 {% endblock %}

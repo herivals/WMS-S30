@@ -3,12 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Charge;
+use App\Entity\Client;
+use App\Entity\Location;
+use App\Entity\Product;
+use App\Entity\StockMovement;
 use App\Enum\StatutUL;
+use App\Enum\TypeMouvement;
 use App\Form\StockUnitType;
 use App\Repository\ChargeRepository;
+use App\Repository\LocationRepository;
+use App\Repository\ProductRepository;
 use App\Repository\StockMovementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,7 +27,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class StockUnitController extends AbstractController
 {
     #[Route('', name: 'index')]
-    public function index(Request $request, ChargeRepository $repo): Response
+    public function index(Request $request, ChargeRepository $repo, LocationRepository $locationRepo): Response
     {
         $search = $request->query->get('search', '');
         $statut = $request->query->get('statut', '');
@@ -51,14 +59,89 @@ class StockUnitController extends AbstractController
 
         return $this->render('stock_unit/index.html.twig', [
             'stockUnits' => $stockUnits,
-            'search' => $search,
-            'statut' => $statut,
-            'statuts' => StatutUL::cases(),
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / max(1, $limit)),
+            'locations'  => $locationRepo->findBy([], ['code' => 'ASC']),
+            'search'     => $search,
+            'statut'     => $statut,
+            'statuts'    => StatutUL::cases(),
+            'page'       => $page,
+            'total'      => $total,
+            'limit'      => $limit,
+            'pages'      => (int) ceil($total / max(1, $limit)),
         ]);
+    }
+
+    #[Route('/api/products', name: 'api_products', methods: ['GET'])]
+    public function apiProducts(Request $request, ProductRepository $productRepo, EntityManagerInterface $em): JsonResponse
+    {
+        $clientId = $request->query->get('clientId');
+        $emplacementId = $request->query->get('emplacementId');
+
+        $deposant = null;
+        if ($clientId) {
+            $client = $em->find(Client::class, (int) $clientId);
+            if ($client) {
+                $deposant = $client->getDeposant();
+            }
+        }
+
+        $products = $productRepo->findByDeposantAndEmplacement(
+            $deposant,
+            $emplacementId ? (int) $emplacementId : null
+        );
+
+        return $this->json(array_map(
+            fn(Product $p) => ['id' => $p->getId(), 'text' => (string) $p],
+            $products
+        ));
+    }
+
+    #[Route('/bulk/move', name: 'bulk_move', methods: ['POST'])]
+    public function bulkMove(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $chargeIds    = json_decode($request->request->get('chargeIds', '[]'), true);
+        $emplacementId = (int) $request->request->get('emplacementId');
+
+        if (empty($chargeIds) || !$emplacementId) {
+            return $this->json(['error' => 'Données manquantes'], 400);
+        }
+
+        $newEmplacement = $em->find(Location::class, $emplacementId);
+        if (!$newEmplacement) {
+            return $this->json(['error' => 'Emplacement introuvable'], 404);
+        }
+
+        /** @var \App\Entity\User $user */
+        $user     = $this->getUser();
+        $userId   = $user?->getId();
+        $userName = $user?->getUserIdentifier();
+        $moved    = 0;
+
+        foreach ($chargeIds as $id) {
+            $charge = $em->find(Charge::class, (int) $id);
+            if (!$charge) continue;
+
+            $oldEmplacement = $charge->getEmplacement();
+            if ($oldEmplacement?->getId() === $newEmplacement->getId()) continue;
+
+            $charge->setEmplacement($newEmplacement);
+
+            $mvt = (new StockMovement())
+                ->setCharge($charge)
+                ->setType(TypeMouvement::TRANSFERT)
+                ->setQuantite($charge->getQuantite())
+                ->setUserId($userId)
+                ->setUserName($userName)
+                ->setCommentaire(sprintf('%s → %s',
+                    $oldEmplacement?->getCode() ?? '—',
+                    $newEmplacement->getCode()
+                ));
+            $em->persist($mvt);
+            $moved++;
+        }
+
+        $em->flush();
+
+        return $this->json(['success' => true, 'moved' => $moved]);
     }
 
     #[Route('/new', name: 'new')]
@@ -94,13 +177,49 @@ class StockUnitController extends AbstractController
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Charge $charge, Request $request, EntityManagerInterface $em): Response
     {
+        // Capturer les valeurs avant modification du formulaire
+        $oldLot        = $charge->getLot();
+        $oldEmplacement = $charge->getEmplacement();
+
         $form = $this->createForm(StockUnitType::class, $charge);
         $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \App\Entity\User $user */
+            $user     = $this->getUser();
+            $userId   = $user?->getId();
+            $userName = $user?->getUserIdentifier();
+
+            if ($charge->getLot() !== $oldLot) {
+                $mvt = (new StockMovement())
+                    ->setCharge($charge)
+                    ->setType(TypeMouvement::CHANGEMENT_LOT)
+                    ->setQuantite($charge->getQuantite())
+                    ->setUserId($userId)
+                    ->setUserName($userName)
+                    ->setCommentaire(sprintf('Lot : %s → %s', $oldLot ?? '—', $charge->getLot() ?? '—'));
+                $em->persist($mvt);
+            }
+
+            if ($charge->getEmplacement() !== $oldEmplacement) {
+                $mvt = (new StockMovement())
+                    ->setCharge($charge)
+                    ->setType(TypeMouvement::TRANSFERT)
+                    ->setQuantite($charge->getQuantite())
+                    ->setUserId($userId)
+                    ->setUserName($userName)
+                    ->setCommentaire(sprintf('%s → %s',
+                        $oldEmplacement?->getCode() ?? '—',
+                        $charge->getEmplacement()?->getCode() ?? '—'
+                    ));
+                $em->persist($mvt);
+            }
+
             $em->flush();
             $this->addFlash('success', 'Unité logistique mise à jour.');
             return $this->redirectToRoute('stock_unit_show', ['id' => $charge->getId()]);
         }
+
         return $this->render('stock_unit/edit.html.twig', ['form' => $form, 'charge' => $charge]);
     }
 

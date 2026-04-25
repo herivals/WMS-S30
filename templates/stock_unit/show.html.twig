@@ -6,8 +6,8 @@
 {% block content %}
 {{ mac.flash_messages() }}
 
-{% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe'} %}
-{% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb'} %}
+{% set mvtColors = {'entrée': '#dcfce7', 'sortie': '#fee2e2', 'transfert': '#dbeafe', 'changement_lot': '#fef9c3'} %}
+{% set mvtText   = {'entrée': '#16a34a', 'sortie': '#dc2626', 'transfert': '#2563eb', 'changement_lot': '#854d0e'} %}
 
 <div class="page-header">
     <div>
@@ -260,7 +260,7 @@
                     </span>
                 </td>
                 <td style="font-weight:600;font-size:13px;">{{ mvt.quantite }}</td>
-                <td style="color:var(--text-muted);font-size:13px;">{{ mvt.userId ?? '—' }}</td>
+                <td style="color:var(--text-muted);font-size:13px;">{{ mvt.userName ?? mvt.userId ?? '—' }}</td>
                 <td style="color:var(--text-muted);font-size:13px;">{{ mvt.commentaire ?? '—' }}</td>
                 <td style="text-align:right;">
                     <a href="{{ path('stock_movement_show', {id: mvt.id}) }}" class="action-btn" title="Voir"><i class="bi bi-eye"></i></a>
