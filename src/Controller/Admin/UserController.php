@@ -13,16 +13,24 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Administration des comptes utilisateurs, accessible uniquement aux administrateurs.
+ * Permet de créer, modifier, activer/désactiver et supprimer des comptes,
+ * avec des gardes pour empêcher l'auto-modification critique (désactivation, suppression de soi).
+ */
 #[Route('/admin/users', name: 'admin_user_')]
 #[IsGranted('ROLE_ADMIN')]
 class UserController extends AbstractController
 {
+    /**
+     * Liste paginée des utilisateurs avec filtre actif/inactif et recherche sur l'email et le nom.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, UserRepository $repo): Response
     {
         $filter = $request->query->get('filter', 'all');
         $search = $request->query->get('search', '');
-        $page = max(1, $request->query->getInt('page', 1));
+        $page   = max(1, $request->query->getInt('page', 1));
         /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
         $limit = $currentUser->getItemsPerPage();
@@ -49,16 +57,20 @@ class UserController extends AbstractController
             ->getResult();
 
         return $this->render('admin/users/index.html.twig', [
-            'users' => $users,
+            'users'  => $users,
             'filter' => $filter,
             'search' => $search,
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / $limit),
+            'page'   => $page,
+            'total'  => $total,
+            'limit'  => $limit,
+            'pages'  => (int) ceil($total / $limit),
         ]);
     }
 
+    /**
+     * Création d'un nouvel utilisateur avec hachage du mot de passe en clair fourni par le formulaire.
+     * Le mot de passe n'est jamais stocké en clair ; le hash est immédiatement calculé avant persist.
+     */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): Response
     {
@@ -76,12 +88,17 @@ class UserController extends AbstractController
         }
 
         return $this->render('admin/users/form.html.twig', [
-            'form' => $form,
-            'user' => $user,
+            'form'  => $form,
+            'user'  => $user,
             'title' => 'Nouvel utilisateur',
         ]);
     }
 
+    /**
+     * Modification d'un utilisateur existant.
+     * Le mot de passe n'est rehashé que si un nouveau mot de passe en clair est fourni ;
+     * laisser le champ vide conserve le hash actuel.
+     */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(User $user, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): Response
     {
@@ -99,12 +116,17 @@ class UserController extends AbstractController
         }
 
         return $this->render('admin/users/form.html.twig', [
-            'form' => $form,
-            'user' => $user,
+            'form'  => $form,
+            'user'  => $user,
             'title' => 'Modifier l\'utilisateur',
         ]);
     }
 
+    /**
+     * Bascule l'état actif/inactif d'un utilisateur.
+     * Un administrateur ne peut pas désactiver son propre compte
+     * pour éviter de se bloquer l'accès.
+     */
     #[Route('/{id}/toggle', name: 'toggle', methods: ['POST'])]
     public function toggle(User $user, EntityManagerInterface $em): Response
     {
@@ -118,6 +140,11 @@ class UserController extends AbstractController
         return $this->redirectToRoute('admin_user_index');
     }
 
+    /**
+     * Suppression définitive d'un utilisateur.
+     * Double garde : token CSRF (prévient les requêtes forgées) +
+     * interdiction de se supprimer soi-même.
+     */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(User $user, EntityManagerInterface $em, Request $request): Response
     {

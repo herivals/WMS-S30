@@ -12,10 +12,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Gestion des réceptions de marchandises.
+ * Une réception regroupe plusieurs charges (UL) arrivées lors d'un même bon d'entrée.
+ * Elle est identifiée par une référence unique et une date.
+ */
 #[Route('/stock/receptions', name: 'reception_')]
 #[IsGranted('ROLE_USER')]
 class ReceptionController extends AbstractController
 {
+    /**
+     * Liste paginée des réceptions, triée de la plus récente à la plus ancienne,
+     * avec recherche sur la référence.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, ReceptionRepository $repo): Response
     {
@@ -38,14 +47,15 @@ class ReceptionController extends AbstractController
 
         return $this->render('reception/index.html.twig', [
             'receptions' => $receptions,
-            'search' => $search,
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / max(1, $limit)),
+            'search'     => $search,
+            'page'       => $page,
+            'total'      => $total,
+            'limit'      => $limit,
+            'pages'      => (int) ceil($total / max(1, $limit)),
         ]);
     }
 
+    /** Création d'une nouvelle réception. */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -61,12 +71,14 @@ class ReceptionController extends AbstractController
         return $this->render('reception/new.html.twig', ['form' => $form, 'reception' => $reception]);
     }
 
+    /** Fiche détaillée d'une réception avec ses charges associées. */
     #[Route('/{id}', name: 'show')]
     public function show(Reception $reception): Response
     {
         return $this->render('reception/show.html.twig', ['reception' => $reception]);
     }
 
+    /** Modification d'une réception existante. */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Reception $reception, Request $request, EntityManagerInterface $em): Response
     {
@@ -80,6 +92,10 @@ class ReceptionController extends AbstractController
         return $this->render('reception/edit.html.twig', ['form' => $form, 'reception' => $reception]);
     }
 
+    /**
+     * Suppression d'une réception après vérification du token CSRF.
+     * Les charges liées deviennent orphelines (reception_id → NULL) si la relation est nullable.
+     */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Reception $reception, Request $request, EntityManagerInterface $em): Response
     {

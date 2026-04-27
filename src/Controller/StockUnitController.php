@@ -22,10 +22,23 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Gestion des unités logistiques (charges / UL) : création, consultation, modification,
+ * suppression et déplacement en masse.
+ *
+ * Points notables :
+ * - La modification d'un lot ou d'un emplacement génère automatiquement un StockMovement traçant l'opération.
+ * - L'endpoint `api_products` alimente le dropdown produit en AJAX, filtré par déposant et emplacement.
+ * - L'endpoint `bulk_move` permet de déplacer plusieurs charges en une seule requête POST.
+ */
 #[Route('/stock/units', name: 'stock_unit_')]
 #[IsGranted('ROLE_USER')]
 class StockUnitController extends AbstractController
 {
+    /**
+     * Liste paginée des charges avec recherche sur le code, la référence et la désignation produit.
+     * Les emplacements sont passés au template pour alimenter le modal de déplacement en masse.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, ChargeRepository $repo, LocationRepository $locationRepo): Response
     {
@@ -70,6 +83,11 @@ class StockUnitController extends AbstractController
         ]);
     }
 
+    /**
+     * Endpoint AJAX : retourne les produits filtrés par déposant (clientId) et/ou emplacement (emplacementId).
+     * Utilisé par le formulaire charge pour recharger dynamiquement le dropdown produit
+     * sans recharger la page entière.
+     */
     #[Route('/api/products', name: 'api_products', methods: ['GET'])]
     public function apiProducts(Request $request, ProductRepository $productRepo, EntityManagerInterface $em): JsonResponse
     {
@@ -95,6 +113,11 @@ class StockUnitController extends AbstractController
         ));
     }
 
+    /**
+     * Déplace plusieurs charges vers un même emplacement en une seule opération.
+     * Un mouvement TRANSFERT est créé pour chaque charge effectivement déplacée.
+     * Les charges déjà à l'emplacement cible sont silencieusement ignorées.
+     */
     #[Route('/bulk/move', name: 'bulk_move', methods: ['POST'])]
     public function bulkMove(Request $request, EntityManagerInterface $em): JsonResponse
     {
@@ -144,6 +167,7 @@ class StockUnitController extends AbstractController
         return $this->json(['success' => true, 'moved' => $moved]);
     }
 
+    /** Création d'une nouvelle unité logistique. */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -159,6 +183,7 @@ class StockUnitController extends AbstractController
         return $this->render('stock_unit/new.html.twig', ['form' => $form, 'charge' => $charge]);
     }
 
+    /** Fiche détaillée d'une charge avec les 10 derniers mouvements associés. */
     #[Route('/{id}', name: 'show')]
     public function show(Charge $charge, StockMovementRepository $mvtRepo): Response
     {
@@ -174,6 +199,11 @@ class StockUnitController extends AbstractController
         ]);
     }
 
+    /**
+     * Modification d'une charge.
+     * Les valeurs de lot et d'emplacement sont capturées avant que le formulaire
+     * ne modifie l'objet, afin de comparer avec l'état soumis et tracer les changements.
+     */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Charge $charge, Request $request, EntityManagerInterface $em): Response
     {
@@ -223,6 +253,7 @@ class StockUnitController extends AbstractController
         return $this->render('stock_unit/edit.html.twig', ['form' => $form, 'charge' => $charge]);
     }
 
+    /** Suppression d'une charge après vérification du token CSRF. */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Charge $charge, Request $request, EntityManagerInterface $em): Response
     {

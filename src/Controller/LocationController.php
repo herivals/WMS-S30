@@ -12,10 +12,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Gestion des emplacements physiques de l'entrepôt (allée / rack / niveau / position).
+ * Chaque emplacement possède un code unique utilisé comme référence dans les charges et les mouvements.
+ */
 #[Route('/stock/locations', name: 'location_')]
 #[IsGranted('ROLE_USER')]
 class LocationController extends AbstractController
 {
+    /**
+     * Liste paginée des emplacements avec recherche sur le code
+     * et filtre optionnel sur l'allée.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, LocationRepository $repo): Response
     {
@@ -42,15 +50,16 @@ class LocationController extends AbstractController
 
         return $this->render('location/index.html.twig', [
             'locations' => $locations,
-            'search' => $search,
-            'allee' => $allee,
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / max(1, $limit)),
+            'search'    => $search,
+            'allee'     => $allee,
+            'page'      => $page,
+            'total'     => $total,
+            'limit'     => $limit,
+            'pages'     => (int) ceil($total / max(1, $limit)),
         ]);
     }
 
+    /** Création d'un nouvel emplacement. */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -66,12 +75,14 @@ class LocationController extends AbstractController
         return $this->render('location/new.html.twig', ['form' => $form, 'location' => $location]);
     }
 
+    /** Fiche détaillée d'un emplacement avec la liste de ses charges. */
     #[Route('/{id}', name: 'show')]
     public function show(Location $location): Response
     {
         return $this->render('location/show.html.twig', ['location' => $location]);
     }
 
+    /** Modification d'un emplacement existant. */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Location $location, Request $request, EntityManagerInterface $em): Response
     {
@@ -85,6 +96,10 @@ class LocationController extends AbstractController
         return $this->render('location/edit.html.twig', ['form' => $form, 'location' => $location]);
     }
 
+    /**
+     * Suppression d'un emplacement après vérification du token CSRF.
+     * Échoue si des charges sont encore affectées à cet emplacement (contrainte FK).
+     */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Location $location, Request $request, EntityManagerInterface $em): Response
     {

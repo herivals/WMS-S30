@@ -12,10 +12,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Gestion du catalogue produits (articles).
+ * Les produits sont rattachés à un déposant via le champ `deposant` (code texte),
+ * ce qui permet de filtrer les produits disponibles lors de la création d'une charge.
+ */
 #[Route('/stock/products', name: 'product_')]
 #[IsGranted('ROLE_USER')]
 class ProductController extends AbstractController
 {
+    /**
+     * Liste paginée des produits avec recherche sur la référence, la désignation,
+     * la famille et le code déposant.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, ProductRepository $repo): Response
     {
@@ -40,14 +49,15 @@ class ProductController extends AbstractController
 
         return $this->render('product/index.html.twig', [
             'products' => $products,
-            'search' => $search,
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / max(1, $limit)),
+            'search'   => $search,
+            'page'     => $page,
+            'total'    => $total,
+            'limit'    => $limit,
+            'pages'    => (int) ceil($total / max(1, $limit)),
         ]);
     }
 
+    /** Création d'un nouveau produit. */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -63,12 +73,14 @@ class ProductController extends AbstractController
         return $this->render('product/new.html.twig', ['form' => $form, 'product' => $product]);
     }
 
+    /** Fiche détaillée d'un produit avec ses charges associées. */
     #[Route('/{id}', name: 'show')]
     public function show(Product $product): Response
     {
         return $this->render('product/show.html.twig', ['product' => $product]);
     }
 
+    /** Modification d'un produit existant. */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Product $product, Request $request, EntityManagerInterface $em): Response
     {
@@ -82,6 +94,10 @@ class ProductController extends AbstractController
         return $this->render('product/edit.html.twig', ['form' => $form, 'product' => $product]);
     }
 
+    /**
+     * Suppression d'un produit après vérification du token CSRF.
+     * Échoue si des charges référencent encore ce produit (contrainte FK non nullable).
+     */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Product $product, Request $request, EntityManagerInterface $em): Response
     {
