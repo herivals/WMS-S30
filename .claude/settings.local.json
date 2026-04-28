@@ -6,7 +6,10 @@
       "Bash(cd \"\\\\\\\\wsl.localhost\\\\Ubuntu-24.04\\\\home\\\\administrateur\\\\WMS-S30\")",
       "Bash(wsl *)",
       "Bash(ls *)",
-      "Read(///wsl.localhost/Ubuntu-24.04/home/administrateur/WMS-S30/**)"
+      "Read(///wsl.localhost/Ubuntu-24.04/home/administrateur/WMS-S30/**)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/administrateur/WMS-S30/tests/**)",
+      "Bash(cmd *)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

@@ -12,10 +12,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Gestion des déposants (clients) : création, consultation, modification et suppression.
+ * Un déposant est identifié par son code unique `deposant` qui sert de clé de rapprochement
+ * avec les produits (Product.deposant) et les charges (Charge.owner).
+ */
 #[Route('/stock/clients', name: 'client_')]
 #[IsGranted('ROLE_USER')]
 class ClientController extends AbstractController
 {
+    /**
+     * Liste paginée des déposants avec recherche sur nom, code et e-mail.
+     */
     #[Route('', name: 'index')]
     public function index(Request $request, ClientRepository $repo): Response
     {
@@ -40,14 +48,15 @@ class ClientController extends AbstractController
 
         return $this->render('client/index.html.twig', [
             'clients' => $clients,
-            'search' => $search,
-            'page' => $page,
-            'total' => $total,
-            'limit' => $limit,
-            'pages' => (int) ceil($total / max(1, $limit)),
+            'search'  => $search,
+            'page'    => $page,
+            'total'   => $total,
+            'limit'   => $limit,
+            'pages'   => (int) ceil($total / max(1, $limit)),
         ]);
     }
 
+    /** Création d'un nouveau déposant. */
     #[Route('/new', name: 'new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -63,12 +72,14 @@ class ClientController extends AbstractController
         return $this->render('client/new.html.twig', ['form' => $form, 'client' => $client]);
     }
 
+    /** Fiche détaillée d'un déposant. */
     #[Route('/{id}', name: 'show')]
     public function show(Client $client): Response
     {
         return $this->render('client/show.html.twig', ['client' => $client]);
     }
 
+    /** Modification d'un déposant existant. */
     #[Route('/{id}/edit', name: 'edit')]
     public function edit(Client $client, Request $request, EntityManagerInterface $em): Response
     {
@@ -82,6 +93,10 @@ class ClientController extends AbstractController
         return $this->render('client/edit.html.twig', ['form' => $form, 'client' => $client]);
     }
 
+    /**
+     * Suppression d'un déposant après vérification du token CSRF.
+     * La suppression peut échouer si des charges ou produits y sont encore rattachés (contrainte FK).
+     */
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Client $client, Request $request, EntityManagerInterface $em): Response
     {
